@@ -1,0 +1,18 @@
+This is all the source code to run the Jan 13, 2016 demo of OOM
+
+Checkout these files into a clean directory
+run 'make'
+
+py oomdemo.py   # runs the demo
+oomsouth_driver.exe     # runs C code to exercise the Southbound shim
+
+The build process assumes your C compiler builds libraries that your 
+Python interpereter can run!
+
+Note in the makefile the process to create the module_data directory and
+populate it with data with the correct names.  Substitute different 
+source files, or give these different numbers in the first character
+to populate different ports with different data.  Note that port 3 is 
+hardwired for now to CFP, with limited support.
+
+Questions?  Please contact don@thebollingers.org
