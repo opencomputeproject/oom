@@ -31,7 +31,7 @@ port_array = port_t * numports
 port_list = port_array()
 portlist_num = oomsouth.oom_get_portlist(port_list)
 
-print oomlib.oom_get_memoryraw(port_list[0], 0xA2, 3, 128, 128)
+print oomlib.oom_get_memoryraw(port_list[0], 0xA2, 0, 0, 128)
 print oomlib.oom_get_keyvalue(port_list[0], "VENDOR_SN")
 print oomlib.oom_get_keyvalue(port_list[0], "XYZ")
 print oomlib.oom_get_keyvalue(port_list[0], "IDENTIFIER")

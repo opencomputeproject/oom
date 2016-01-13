@@ -116,7 +116,9 @@ int oom_get_portlist(oom_port_t portlist[])
 			readpage(fp, port_i2c_data[i] + 0xA2*256);
 
 			/* next 32 blocks are pages 0-31 */
-			for (j = 0; j < 10; j++) {
+			/* for now, just read page 0 */
+
+			for (j = 0; j < 1; j++) {
 				stopit = readpage(fp, port_page_data[i] + j*128);
 			}
 		}
