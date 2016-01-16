@@ -1,0 +1,8 @@
+*.[oa]
+*~
+*.pyc
+*.swp
+*.exe
+*.stackdump
+lib
+module_data
