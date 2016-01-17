@@ -67,8 +67,8 @@ int oom_get_portlist(oom_port_t portlist[])
 		fp = fopen(fname, "r");
 		if (fp == NULL) {
 			pptr->port_type = OOM_PORT_TYPE_NOT_PRESENT;
-			printf("module %d is not present (%s)\n", i, fname);
-			perror("errno:");
+			/* printf("module %d is not present (%s)\n", i, fname); */
+			/* perror("errno:"); */
 			stopit = 1;
 		} 
 		if (!stopit) {
@@ -80,7 +80,9 @@ int oom_get_portlist(oom_port_t portlist[])
 				stopit = 1;
 			} else {
 				pptr->port_type = *A0_data;  /* first byte is type */
-				printf("Port %d type: %d\n", i, pptr->port_type);
+				/*
+				printf("Port %d type: %d\n", i, pptr->port_type); 
+				*/
 			}
 
 		}
@@ -91,8 +93,10 @@ int oom_get_portlist(oom_port_t portlist[])
 			fp = fopen(fname, "r");
 			if (fp == NULL) {
 				pptr->port_type = OOM_PORT_TYPE_NOT_PRESENT;
+				/* 
 				printf("module %d is not present\n", i);
 				perror("errno:");
+				*/
 				stopit = 1;
 			} 
 		}

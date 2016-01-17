@@ -44,6 +44,7 @@ port_array = port_t * numports
 port_list = port_array()
 portlist_num = oomsouth.oom_get_portlist(port_list)
 
+print 'Port 0, address A2h, page 0, offset 0, 128 bytes:'
 oomsouth.print_block_hex(
         oomlib.oom_get_memoryraw(port_list[0], 0xA2, 0, 0, 128))
 print oomlib.oom_get_keyvalue(port_list[0], "VENDOR_SN")
@@ -51,14 +52,19 @@ print oomlib.oom_get_keyvalue(port_list[0], "XYZ")
 print oomlib.oom_get_keyvalue(port_list[0], "IDENTIFIER")
 print oomlib.oom_get_memory(port_list[0], "DOM")
 
+# demo the presence of oom_getport
+portnum = 2
+print "Port " + str(portnum)
+port = oomlib.oom_getport(portnum)
+print oomlib.oom_get_memory(port, "DOM")
+
 # Manual demo:
 #
-# import demosetup
 # import oomlib
-# port = demosetup.getport(0)
+# port = oomlib.getport(0)
 # print oomlib.oom_getkeyvalue(port, "IDENTIFIER")
 # print oomlib.oom_get_memory(port, "DOM")
 # try any other legal keys
 # change ports
-# port2 = demosetup.getport(2)
+# port2 = oomlib.getport(2)
 # print oomlib.oom_get_memory(port2, "DOM")

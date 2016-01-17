@@ -40,6 +40,16 @@ class port_t(Structure):
                 ("port_flag", c_int)]
 
 
+# helper routine, provides a port without requiring the prior
+# definition of the complicated port_t struct
+def oom_getport(portnum):
+    numports = oomsouth.oom_maxports()
+    port_array = port_t * numports
+    port_list = port_array()
+    portlist_num = oomsouth.oom_get_portlist(port_list)
+    return port_list[portnum]
+
+
 #
 # This is a copy of a matching table in oom_south.h
 # Might be a problem keeping these in sync, but
