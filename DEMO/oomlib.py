@@ -123,6 +123,24 @@ def getmm(type):
     return []
 
 
+#
+# get the mapping, which functions include which keys
+#
+fmbytype = [[]*2]
+
+
+def getfm(type):
+    if type == port_type_e['SFP']:
+        if fmbytype[0] == []:
+            fmbytype[0] = sfp.FM
+        return(fmbytype[0])
+    if type == port_type_e['QSFP']:
+        if fmbytype[1] == []:
+            fmbytype[1] = qsfp.fM
+        return(fmbytype[1])
+    return []
+
+
 # one time setup, get the names of the decoders in the decode library
 decodelib = importlib.import_module('decode')
 
@@ -130,17 +148,20 @@ decodelib = importlib.import_module('decode')
 #
 # magic decoder - gets any attribute based on its key attribute
 # if there is no decoder for the port type, or the key is not
-# listed in the memory map for that port type, then returns {key:''}
+# listed in the memory map for that port type, then returns ''
+# NOTE: the type of the value returned depends on the key.
+# Use 'str(oom_get_keyvalue(port, key))' to get a readable string
+# for all return types
 #
 def oom_get_keyvalue(port, key):
     mm = getmm(port.port_type)            # get the memory map for this type
     if key not in mm:
-        return {key: ''}
+        return ''
     par = (port,) + mm[key][1:]           # get the parameters
     raw_data = oom_get_memoryraw(*par)    # get the data
     decoder = getattr(decodelib, mm[key][0])  # get the decoder
     temp = decoder(raw_data)              # get the value
-    return {key: temp}                    # and return it
+    return temp                           # and return it
 
 
 #
@@ -154,23 +175,14 @@ def oom_get_memoryraw(port, address, page, offset, length):
     return data
 
 
+#
+# given a 'function', return a dictionary with the values of all the
+# keys in that function, on the specified port
+#
 def oom_get_memory(port, function):
 
-    if function.upper() == "VENDOR_SN":
-        return oom_get_keyvalue(port, 'VENDOR_SN')
-
-    elif function.upper() == "IDENTIFIER":
-        return oom_get_keyvalue(port, 'IDENTIFIER')
-
-    elif function.upper() == 'DOM':
-        return [
-            oom_get_keyvalue(port, 'TEMPERATURE'),
-            oom_get_keyvalue(port, 'VCC'),
-            oom_get_keyvalue(port, 'TX_BIAS'),
-            oom_get_keyvalue(port, 'TX_POWER'),
-            oom_get_keyvalue(port, 'RX_POWER')
-            ]
-
-    elif function == "FAWS":
-        print "FAWS"
-        return
+    funcmap = getfm(port.port_type)
+    retval = {}
+    for keys in funcmap[function]:
+        retval[keys] = oom_get_keyvalue(port, keys)
+    return retval
