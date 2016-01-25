@@ -49,7 +49,7 @@ oomsouth.print_block_hex(
         oomlib.oom_get_memoryraw(port_list[0], 0xA2, 0, 0, 128))
 print "VENDOR_SN: " + oomlib.oom_get_keyvalue(port_list[0], "VENDOR_SN")
 print "XYZ: " + oomlib.oom_get_keyvalue(port_list[0], "XYZ")
-print "IDENTIFIER: " + oomlib.oom_get_keyvalue(port_list[0], "IDENTIFIER")
+print "IDENTIFIER: " + str(oomlib.oom_get_keyvalue(port_list[0], "IDENTIFIER"))
 print "DOM: " + str(oomlib.oom_get_memory(port_list[0], "DOM"))
 
 # demo the presence of oom_getport
@@ -57,7 +57,7 @@ portnum = 2
 print "Port " + str(portnum)
 port = oomlib.oom_getport(portnum)
 print "TX_POWER: " + str(oomlib.oom_get_keyvalue(port, "TX_POWER"))
-print "X_POWER: " + str(oomlib.oom_get_memory(port, "X_POWER"))
+print "SERIAL_ID: " + str(oomlib.oom_get_memory(port, "SERIAL_ID"))
 
 # Manual demo:
 #

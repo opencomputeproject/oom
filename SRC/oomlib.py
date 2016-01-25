@@ -172,6 +172,7 @@ def oom_get_memoryraw(port, address, page, offset, length):
     data = create_string_buffer(length)   # allocate space
     len = oomsouth.oom_get_memoryraw(byref(port), address,
                                      page, offset, length, data)
+
     return data
 
 
