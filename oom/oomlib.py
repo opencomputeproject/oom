@@ -1,12 +1,14 @@
 # /////////////////////////////////////////////////////////////////////
 #
-#  oomlib.py : Implements OOM Northbound API, calls decode routines
+#  oomlib.py : Implements OOM decoding, all the routines that are not
+#  visible in the Northbound API, calls decode routines
 #  to decode raw data from the Southbound API
+#  Also hides the messy data structures and allocates the memory
+#  for the messy data
 #
 #  Copyright 2015  Finisar Inc.
 #
-#  Authors: Yuan Yu yuan.yu@finisar.com
-#           Don Bollinger don@thebollingers.org
+#  Author: Don Bollinger don@thebollingers.org
 #
 # ////////////////////////////////////////////////////////////////////
 
@@ -14,12 +16,8 @@ import sfp
 import qsfp
 import decode
 
-import glob
-import os
 import struct
-import time
 from ctypes import *
-from array import *
 import importlib
 
 #
@@ -28,6 +26,9 @@ import importlib
 # this location (relative to this module, in lib, named oom_south.so)
 #
 oomsouth = cdll.LoadLibrary("./lib/oom_south.so")
+
+# one time setup, get the names of the decoders in the decode library
+decodelib = importlib.import_module('decode')
 
 
 #
@@ -50,7 +51,28 @@ def oom_getport(portnum):
     return port_list[portnum]
 
 
+# similarly, provide the port list without requiring the definition
+# of the port_t structure.  Allocate the memory here.
+def oom_get_portlist():
+    numports = oomsouth.oom_maxports()
+    port_array = port_t * numports
+    port_list = port_array()
+    portlist_num = oomsouth.oom_get_portlist(port_list)
+    return port_list
+
+
 #
+# Allocate the memory for raw reads, return the data cleanly
+#
+def oom_get_memoryraw(port, address, page, offset, length):
+    data = create_string_buffer(length)   # allocate space
+    len = oomsouth.oom_get_memoryraw(byref(port), address,
+                                     page, offset, length, data)
+    return data
+
+
+#
+# Mapping of port_type numbers to user accessible names
 # This is a copy of a matching table in oom_south.h
 # Might be a problem keeping these in sync, but
 # these mappings are based on the relevant standards,
@@ -103,6 +125,8 @@ port_type_e = {
 
 
 #
+# Get the mapping, for each key, what is it's decoder, and where
+# in the EEPROM (address, page, offset, len) is the data
 # TODO:  Kludge here, want a way to map type to a memmap, on demand
 # like if (mmbytpe[type] == []: mmbytpe[type] = "type".MM
 # current implementation ties SFP and QSFP to the numbers '0' and '1'
@@ -139,51 +163,3 @@ def getfm(type):
             fmbytype[1] = qsfp.fM
         return(fmbytype[1])
     return []
-
-
-# one time setup, get the names of the decoders in the decode library
-decodelib = importlib.import_module('decode')
-
-
-#
-# magic decoder - gets any attribute based on its key attribute
-# if there is no decoder for the port type, or the key is not
-# listed in the memory map for that port type, then returns ''
-# NOTE: the type of the value returned depends on the key.
-# Use 'str(oom_get_keyvalue(port, key))' to get a readable string
-# for all return types
-#
-def oom_get_keyvalue(port, key):
-    mm = getmm(port.port_type)            # get the memory map for this type
-    if key not in mm:
-        return ''
-    par = (port,) + mm[key][1:]           # get the parameters
-    raw_data = oom_get_memoryraw(*par)    # get the data
-    decoder = getattr(decodelib, mm[key][0])  # get the decoder
-    temp = decoder(raw_data)              # get the value
-    return temp                           # and return it
-
-
-#
-# TODO - throw an exception if len != length
-#
-def oom_get_memoryraw(port, address, page, offset, length):
-
-    data = create_string_buffer(length)   # allocate space
-    len = oomsouth.oom_get_memoryraw(byref(port), address,
-                                     page, offset, length, data)
-
-    return data
-
-
-#
-# given a 'function', return a dictionary with the values of all the
-# keys in that function, on the specified port
-#
-def oom_get_memory(port, function):
-
-    funcmap = getfm(port.port_type)
-    retval = {}
-    for keys in funcmap[function]:
-        retval[keys] = oom_get_keyvalue(port, keys)
-    return retval
