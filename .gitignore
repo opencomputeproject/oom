@@ -6,3 +6,5 @@
 *.stackdump
 lib
 module_data
+/dist/
+/*.egg-info
