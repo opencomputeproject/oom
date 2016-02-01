@@ -34,6 +34,6 @@ print "DOM: " + str(oom_get_memory(port_list[0], "DOM"))
 # have different values on this different port
 portnum = 2
 print "Port " + str(portnum)
-port = oom_getport(portnum)
+port = oom_get_port(portnum)
 print "VENDOR_SN: " + str(oom_get_keyvalue(port, "VENDOR_SN"))
 print "DOM: " + str(oom_get_memory(port, "DOM"))

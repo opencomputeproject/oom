@@ -41,18 +41,21 @@ class port_t(Structure):
                 ("port_flag", c_int)]
 
 
-# helper routine, provides a port without requiring the prior
+#
+# oom_get_port(n): helper routine, provides a port without requiring the prior
 # definition of the complicated port_t struct
-def oom_getport(portnum):
-    numports = oomsouth.oom_maxports()
-    port_array = port_t * numports
-    port_list = port_array()
-    portlist_num = oomsouth.oom_get_portlist(port_list)
-    return port_list[portnum]
+#
+def oom_get_port(n):
+    port = port_t*1
+    portptr = port()
+    num = oomsouth.oom_get_port(n, portptr)
+    return(portptr[0])
 
 
+#
 # similarly, provide the port list without requiring the definition
 # of the port_t structure.  Allocate the memory here.
+#
 def oom_get_portlist():
     numports = oomsouth.oom_maxports()
     port_array = port_t * numports

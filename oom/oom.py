@@ -13,12 +13,19 @@ import oomlib
 from oomlib import getmm, getfm, decodelib
 
 
-# helper routine, provides a port without requiring the prior
-# definition of the complicated port_t struct
-def oom_getport(portnum):
-    return oomlib.oom_getport(portnum)
+#
+# helper routine, provides a port without requiring the user to
+# define the complicated port_t struct
+#
+def oom_get_port(n):
+    port = oomlib.oom_get_port(n)
+    return (port)
 
 
+#
+# similarly, get the full list of ports, allocates the
+# memory, defines the data types, simple
+#
 def oom_get_portlist():
     port_list = oomlib.oom_get_portlist()
     return(port_list)

@@ -20,20 +20,45 @@ uint8_t* port_i2c_data[MAXPORTS];
 uint8_t* port_page_data[MAXPORTS];
 uint16_t* port_CFP_data[MAXPORTS];
 
+int initialized = 0;
+oom_port_t port_array[MAXPORTS];
+
 /* MOCKS */
 
 /* oom_maxports - returns 4 ports (always), like a 4 port switch */
 int oom_maxports(void) {
-	int i;
+    int i;
 
-	/* take this opportunity to allocate memory for every page of every port */
-	for (i = 0; i < MAXPORTS; i++) {
-		/* allocate i2c space, page space for each port */
-		port_i2c_data[i] = malloc(256*256); /* 256 bytes for every i2c address */
-		port_page_data[i] = malloc(128*256); /* 128 bytes for 256 pages */
-		port_CFP_data[i] = malloc(65536*2); /* full 64K word memory map */
+    if (initialized == 0) {   /* don't reallocate memory! */
+        /* allocate memory for every page of every port */
+        for (i = 0; i < MAXPORTS; i++) {
+            port_i2c_data[i] = malloc(256*256); /* 256 bytes per ic2c address */
+            port_page_data[i] = malloc(128*256); /* 128 bytes for 256 pages */
+            port_CFP_data[i] = malloc(65536*2); /* full 64K word memory map */
+        }
+	initialized = 1;
+    }
+    return(MAXPORTS);
+}
+
+
+/*
+ * get one port.  Allocate all the ports if necessary, 
+ * then get the requested port, return it in the pointer to port
+ */
+int oom_get_port(int n, oom_port_t* port)
+{
+	oom_port_t* portlist;
+	if (initialized == 0) {  /* build global port_array */
+		portlist = malloc(sizeof(port_array));
+		oom_get_portlist(portlist);
+		free(portlist);
 	}
-	return(MAXPORTS);
+	port->port_num = port_array[n].port_num;
+	port->port_type = port_array[n].port_type;
+	port->seq_num = port_array[n].seq_num;
+	port->port_flags = port_array[n].port_flags;
+	return(n);
 }
 
 /* oom_get_portlist - build 4 ports:
@@ -55,6 +80,11 @@ int oom_get_portlist(oom_port_t portlist[])
 	char* retval;
 	size_t retcount;
 
+	if (initialized == 0) {
+		i = oom_maxports();  /* allocate memory for all ports */
+	}
+
+	/* go ahead and reread the data files even if already initialized */
 	for (i = 0; i< MAXPORTS; i++) {
 		stopit = 0;
 		pptr = &portlist[i];
@@ -134,6 +164,11 @@ int oom_get_portlist(oom_port_t portlist[])
 	/* TODO - undo this kludge */
 	/* fake port 3 as a CFP port until file read ability shows up */
 	pptr->port_type=OOM_PORT_TYPE_CFP;
+
+	/* copy the port_list into the global port_array */
+	for (i = 0; i < MAXPORTS; i++) {
+		port_array[i] = portlist[i];
+	}
 }
 
 /* 
@@ -274,6 +309,7 @@ int oom_set_memoryraw(oom_port_t* port, int address, int page, int offset, int l
 	
 	return(len);
 }
+
 
 int oom_get_memoryraw(oom_port_t* port, int address, int page, int offset, int len, uint8_t* data)
 {

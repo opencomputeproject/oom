@@ -1,7 +1,7 @@
 /******************************
 *
-*  Preliminary work in progress, Southbound API definition
-*  for Open Optical Monitoring (OOM) initiative under the 
+*  Southbound API definition for
+*  Open Optical Monitoring (OOM) initiative under the 
 *  umbrella of OCP.
 *
 *  Copyright 2015  Finisar Inc.
@@ -9,7 +9,7 @@
 *  LIKELY TO CHANGE, no promises of compatibility with future 
 *  versions is made or implied
 *
-*  Version: 0.3, January 5, 2016 (definitive port types)
+*  Version: 0.4, January 28, 2016 (added oom_get_port(n))
 *  Author: Don Bollinger
 *
 *******************************/
@@ -93,7 +93,8 @@ typedef struct oom_port_s {
 	uint32_t port_flags;
 } oom_port_t;
 
-/* get the list of available ports, as an array 
+/*
+ * get the list of available ports, as an array 
  * of oom_port_t structs
  * returns the number of ports, or negative error code
  * note the underlying implementation must fill 
@@ -102,7 +103,22 @@ typedef struct oom_port_s {
  */
 int oom_get_portlist(oom_port_t portlist[]);
 
-/* Read/write control “PINS” function definitions */
+/*
+ * get just one port.  <n> is the port number of the requested port
+ * return the port in the structure pointed to by 'port'
+ * THIS IS NEW to the southbound API as of Jan 28, 2016
+ */
+
+int oom_get_port(int n, oom_port_t* port); 
+
+
+/* Read/write control "PINS" function definitions */
+
+/* note that these 'control pins' functions are in limbo right 
+ * now, and may not be implemented until later, if at all.
+ * Developers of "southbound shims" may choose to delay 
+ * implementation of oom_{get, set}_function()
+ */
 
 /* list of functions that can be controlled */
 typedef enum oom_functions_e {
@@ -120,14 +136,14 @@ typedef enum oom_functions_e {
 
 /* 
  * read a function
- * rv will be 1 for “asserted” or “enabled”, 0 if 
- * not  * returns 0 on success, or negative error code
+ * rv will be 1 for asserted or enabled, 0 if not
+ * returns 0 on success, or negative error code
  */
 int oom_get_function(oom_port_t* port, oom_functions_t function, int* rv);
 
 /* 
  * write a function
- * value should be 1 for “asserted” or “enabled”, 0 if not
+ * value should be 1 for asserted or enabled, 0 if not
  * returns 0 on success, or negative error code
  */
 int oom_set_function(oom_port_t* port, oom_functions_t function, int value);
@@ -248,8 +264,3 @@ int oom_get_memoryraw16(oom_port_t* port, int address, int len, uint16_t* data);
  * returns the number of words written, or a negative error code
  */
 int oom_set_memoryraw16(oom_port_t* port, int address, int len, uint16_t* data);
-
-
-
-
-
