@@ -17,7 +17,7 @@ from decode import hexstr           # helper function from the decode pack
 
 
 # open port 0
-port = oom_getport(0)
+port = oom_get_port(0)
 
 # get the internal list of keys and decoders for this type of module
 # report their values for this port
