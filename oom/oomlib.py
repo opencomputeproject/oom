@@ -166,3 +166,27 @@ def getfm(type):
             fmbytype[1] = qsfp.fM
         return(fmbytype[1])
     return []
+
+
+# helper function, print raw data, in hex
+def print_block_hex(data):
+    dataptr = 0
+    bytesleft = len(data)
+    lines = (bytesleft + 15) / 16
+    for i in range(lines):
+        outstr = "       "
+        blocks = (bytesleft + 3) / 4
+        if blocks > 4: blocks = 4
+        for j in range(blocks):
+            nbytes = bytesleft
+            if nbytes > 4: nbytes = 4
+            for k in range(nbytes):
+                temp = ord(data[dataptr])
+                foo = hex(temp)
+                if temp < 16:
+                    outstr += '0'
+                outstr += foo[2:4]
+                dataptr += 1
+                bytesleft -= 1
+            outstr += ' '
+        print outstr

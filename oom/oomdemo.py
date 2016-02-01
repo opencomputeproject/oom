@@ -12,15 +12,14 @@ from oom import *
 from ctypes import *
 
 # just opening the southbound library to get my cool hex block printer
-oomsouth = cdll.LoadLibrary("./lib/oom_south.so")
+# oomsouth = cdll.LoadLibrary("./lib/oom_south.so")
 
 # get the list of available ports (port_list is a list of port structures)
 port_list = oom_get_portlist()
 
 # Demo the raw memory access API
 print 'Port 0, address A2h, page 0, offset 0, 128 bytes:'
-oomsouth.print_block_hex(
-        oom_get_memoryraw(port_list[0], 0xA2, 0, 0, 128))
+print_block_hex(oom_get_memoryraw(port_list[0], 0xA2, 0, 0, 128))
 
 # demo the get_keyvalue() API
 print "VENDOR_SN: " + oom_get_keyvalue(port_list[0], "VENDOR_SN")

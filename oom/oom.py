@@ -10,7 +10,7 @@
 # ////////////////////////////////////////////////////////////////////
 
 import oomlib
-from oomlib import getmm, getfm, decodelib
+from oomlib import getmm, getfm, decodelib, print_block_hex
 
 
 #
