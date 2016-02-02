@@ -11,6 +11,7 @@
 
 import oomlib
 from oomlib import getmm, getfm, decodelib, print_block_hex
+from decode import get_string
 
 
 #
@@ -68,3 +69,7 @@ def oom_get_memory(port, function):
 #
 def oom_get_memoryraw(port, address, page, offset, length):
     return oomlib.oom_get_memoryraw(port, address, page, offset, length)
+
+
+def oom_set_memoryraw(port, address, page, offset, length, data):
+    return oomlib.oom_set_memoryraw(port, address, page, offset, length, data)

@@ -11,9 +11,6 @@
 from oom import *
 from ctypes import *
 
-# just opening the southbound library to get my cool hex block printer
-# oomsouth = cdll.LoadLibrary("./lib/oom_south.so")
-
 # get the list of available ports (port_list is a list of port structures)
 port_list = oom_get_portlist()
 
@@ -36,3 +33,17 @@ print "Port " + str(portnum)
 port = oom_get_port(portnum)
 print "VENDOR_SN: " + str(oom_get_keyvalue(port, "VENDOR_SN"))
 print "DOM: " + str(oom_get_memory(port, "DOM"))
+
+# demo the raw write API
+# SFP address A2h, page 0, offset 128-247 are user writable, scribble there
+print '*******************'
+content = oom_get_memoryraw(port, 0xA2, 0, 128, 16)
+print 'oom_set_memoryraw demo'
+print '0xA2, page 0, offset 128, 16 bytes, initial content:'
+print_block_hex(content)
+content = '16 changed bytes'
+length = oom_set_memoryraw(port, 0xA2, 0, 128, 16, content)
+content = oom_get_memoryraw(port, 0xA2, 0, 128, 16)
+print '0xA2, page 0, offset 128, 16 bytes, changed content:'
+print get_string(content)
+print '*******************'

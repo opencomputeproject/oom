@@ -69,9 +69,19 @@ def oom_get_portlist():
 #
 def oom_get_memoryraw(port, address, page, offset, length):
     data = create_string_buffer(length)   # allocate space
-    len = oomsouth.oom_get_memoryraw(byref(port), address,
+    retlen = oomsouth.oom_get_memoryraw(byref(port), address,
                                      page, offset, length, data)
     return data
+
+
+#
+# Raw write
+#
+def oom_set_memoryraw(port, address, page, offset, length, data):
+    # data = create_string_buffer(length)   # allocate space
+    retlen = oomsouth.oom_set_memoryraw(byref(port), address,
+                                     page, offset, length, data)
+    return retlen
 
 
 #
