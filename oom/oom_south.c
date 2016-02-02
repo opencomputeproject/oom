@@ -276,8 +276,10 @@ int oom_set_memoryraw(oom_port_t* port, int address, int page, int offset, int l
 	uint8_t* i2cptr;
 	uint8_t* pageptr;
 	
+	/*
 	printf("SET: Port: %d, address: 0x%2X, page: %d, offset: %d, len: %d\n", port->port_num, 
 		address, page, offset, len);
+	*/
 	
 	i2cptr = port_i2c_data[port->port_num];  /* get the data for this port */
 	i2cptr += address*256;  /* select the data at the right i2c address */
@@ -295,7 +297,6 @@ int oom_set_memoryraw(oom_port_t* port, int address, int page, int offset, int l
 			i2clen = len;
 		}
 	
-		printf("set i2c memory\n");
 		pmemcpy(&i2cptr[offset], data, i2clen); /* write the i2c space */
 
 		/* adjust page pointers to account for writing some to i2c space */

@@ -52,6 +52,15 @@ def oom_get_keyvalue(port, key):
 
 
 #
+# Set a key to chosen value (write key to EEPROM)
+# Be careful with this, this is likely to change the function
+# of your module
+#
+def oom_set_keyvalue(port, key, value):
+    return oomlib.oom_set_keyvalue(port, key, value)
+
+
+#
 # given a 'function', return a dictionary with the values of all the
 # keys in that function, on the specified port
 #

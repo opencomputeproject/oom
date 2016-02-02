@@ -70,7 +70,7 @@ def oom_get_portlist():
 def oom_get_memoryraw(port, address, page, offset, length):
     data = create_string_buffer(length)   # allocate space
     retlen = oomsouth.oom_get_memoryraw(byref(port), address,
-                                     page, offset, length, data)
+                                        page, offset, length, data)
     return data
 
 
@@ -80,8 +80,27 @@ def oom_get_memoryraw(port, address, page, offset, length):
 def oom_set_memoryraw(port, address, page, offset, length, data):
     # data = create_string_buffer(length)   # allocate space
     retlen = oomsouth.oom_set_memoryraw(byref(port), address,
-                                     page, offset, length, data)
+                                        page, offset, length, data)
     return retlen
+
+
+#
+# set the chosen key to the specified value
+#
+def oom_set_keyvalue(port, key, value):
+    # kludge implementation for now, just to demo northbound API
+    # basically, only one key is implemented!
+    if key == 'SOFT_TX_DISABLE_SELECT':
+        byte110 = oom_get_memoryraw(port, 0xA2, 0, 110, 1)
+        # legal values are interpreted as 0 and not 0
+        temp = ord(byte110[0])
+        if value == 0:
+            temp = clear_bit(temp, 6)
+        else:
+            temp = set_bit(temp, 6)
+        byte110[0] = chr(temp)
+        length = oom_set_memoryraw(port, 0xA2, 0, 110, 1, byte110[0])
+    return length                           # and return it
 
 
 #
@@ -186,10 +205,12 @@ def print_block_hex(data):
     for i in range(lines):
         outstr = "       "
         blocks = (bytesleft + 3) / 4
-        if blocks > 4: blocks = 4
+        if blocks > 4:
+            blocks = 4
         for j in range(blocks):
             nbytes = bytesleft
-            if nbytes > 4: nbytes = 4
+            if nbytes > 4:
+                nbytes = 4
             for k in range(nbytes):
                 temp = ord(data[dataptr])
                 foo = hex(temp)
@@ -200,3 +221,12 @@ def print_block_hex(data):
                 bytesleft -= 1
             outstr += ' '
         print outstr
+
+
+# set or clear a bit, for writing one bit back to EEPROM
+def set_bit(value, bit):
+    return (value | (1 << bit))
+
+
+def clear_bit(value, bit):
+    return (value & ~(1 << bit))

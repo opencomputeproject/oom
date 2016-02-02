@@ -37,13 +37,26 @@ print "DOM: " + str(oom_get_memory(port, "DOM"))
 # demo the raw write API
 # SFP address A2h, page 0, offset 128-247 are user writable, scribble there
 print '*******************'
-content = oom_get_memoryraw(port, 0xA2, 0, 128, 16)
 print 'oom_set_memoryraw demo'
 print '0xA2, page 0, offset 128, 16 bytes, initial content:'
+content = oom_get_memoryraw(port, 0xA2, 0, 128, 16)
 print_block_hex(content)
 content = '16 changed bytes'
 length = oom_set_memoryraw(port, 0xA2, 0, 128, 16, content)
-content = oom_get_memoryraw(port, 0xA2, 0, 128, 16)
 print '0xA2, page 0, offset 128, 16 bytes, changed content:'
+content = oom_get_memoryraw(port, 0xA2, 0, 128, 16)
 print get_string(content)
+print '*******************'
+
+# demo the key write API
+# SOFT_TX_DISABLE_SELECT is a user writable control bit to disable TX
+print 'oom_set_memory(port, key, value) demo'
+print 'Current value of TX_DISABLE: ' + \
+        str(oom_get_keyvalue(port, 'SOFT_TX_DISABLE_SELECT'))
+status = oom_set_keyvalue(port, 'SOFT_TX_DISABLE_SELECT', 1)
+print 'New value of TX_DISABLE: ' + \
+        str(oom_get_keyvalue(port, 'SOFT_TX_DISABLE_SELECT'))
+status = oom_set_keyvalue(port, 'SOFT_TX_DISABLE_SELECT', 0)
+print 'Newer value of TX_DISABLE: ' + \
+        str(oom_get_keyvalue(port, 'SOFT_TX_DISABLE_SELECT'))
 print '*******************'
