@@ -304,7 +304,6 @@ int oom_set_memoryraw(oom_port_t* port, int address, int page, int offset, int l
 		pagelen = len - i2clen;
 	}
 	if (pagelen > 0) { /* some data to be copied to the page */
-		printf("set page memory\n");
 		pmemcpy(&pageptr[pageoffset], &data[i2clen], pagelen);
 	}
 	
