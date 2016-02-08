@@ -31,25 +31,49 @@ oomsouth = cdll.LoadLibrary("./lib/oom_south.so")
 decodelib = importlib.import_module('decode')
 
 
+port_class_e = {
+    'UNKNOWN': 0x00,
+    'SFF': 0x01,
+    'CFP': 0x02
+    }
+
+
 #
 # This class recreates the port structure in the southbound API
 #
-class port_t(Structure):
-    _fields_ = [("port_num", c_int),
-                ("port_type", c_int),
-                ("seq_num", c_int),
-                ("port_flag", c_int)]
+class c_port_t(Structure):
+    _fields_ = [("handle", c_void_p),
+                ("oom_class", c_int),
+                ("name", c_ubyte * 32)]
+
+
+# This class is the python port, which includes the C definition
+# of a port, plus other useful things, including the port type, 
+# and the keymap for that port.
+class port:
+    def __init__(self):
+        self.ptype = 3   # hack, make this an SFP port for now
+
+    def add_c_port(self, c_port):
+        self.c_port = c_port
+        self.port_name = '' 
+        for i in range(32):
+            self.port_name += chr(c_port.name[i])
+
+
+    def add_port_type(self, port_type):
+        self.port_type = port_type
 
 
 #
 # oom_get_port(n): helper routine, provides a port without requiring the prior
 # definition of the complicated port_t struct
+# returns port 'n' of the list of ports returned by the shim
+# note, sketchy way to define a port
 #
 def oom_get_port(n):
-    port = port_t*1
-    portptr = port()
-    num = oomsouth.oom_get_port(n, portptr)
-    return(portptr[0])
+    portlist = oom_get_portlist()
+    return(portlist[n])
 
 
 #
@@ -57,19 +81,39 @@ def oom_get_port(n):
 # of the port_t structure.  Allocate the memory here.
 #
 def oom_get_portlist():
-    numports = oomsouth.oom_maxports()
-    port_array = port_t * numports
-    port_list = port_array()
-    portlist_num = oomsouth.oom_get_portlist(port_list)
-    return port_list
+    numports = oomsouth.oom_get_portlist(0,0)
+    cport_array = c_port_t * numports
+    cport_list = cport_array()
+    retval = oomsouth.oom_get_portlist(cport_list, numports)
+    portcount = 0
+    portlist = [port() for cport in cport_list]
+    for cport in cport_list:
+        portlist[portcount].add_c_port(cport)
+        ptype = get_port_type(portlist[portcount])
+        portlist[portcount].add_port_type(ptype)
+        portcount += 1
+    return portlist
+
+
+#
+# figure out the type of a port
+#
+def get_port_type(port):
+    if port.c_port.oom_class == port_class_e['SFF']:
+        data = oom_get_memory_sff(port, 0xA0, 0, 0, 1)
+        ptype = ord(data[0])
+        return(ptype)
+    # TODO: get type for CFP modules, requires oom_get_memory_cfp()
+    ptype = port_type_e['UNKNOWN']
+    return (ptype)
 
 
 #
 # Allocate the memory for raw reads, return the data cleanly
 #
-def oom_get_memoryraw(port, address, page, offset, length):
+def oom_get_memory_sff(port, address, page, offset, length):
     data = create_string_buffer(length)   # allocate space
-    retlen = oomsouth.oom_get_memoryraw(byref(port), address,
+    retlen = oomsouth.oom_get_memory_sff(byref(port.c_port), address,
                                         page, offset, length, data)
     return data
 
@@ -77,9 +121,9 @@ def oom_get_memoryraw(port, address, page, offset, length):
 #
 # Raw write
 #
-def oom_set_memoryraw(port, address, page, offset, length, data):
+def oom_set_memory_sff(port, address, page, offset, length, data):
     # data = create_string_buffer(length)   # allocate space
-    retlen = oomsouth.oom_set_memoryraw(byref(port), address,
+    retlen = oomsouth.oom_set_memory_sff(byref(port.c_port), address,
                                         page, offset, length, data)
     return retlen
 
@@ -91,7 +135,7 @@ def oom_set_keyvalue(port, key, value):
     # kludge implementation for now, just to demo northbound API
     # basically, only one key is implemented!
     if key == 'SOFT_TX_DISABLE_SELECT':
-        byte110 = oom_get_memoryraw(port, 0xA2, 0, 110, 1)
+        byte110 = oom_get_memory_sff(port, 0xA2, 0, 110, 1)
         # legal values are interpreted as 0 and not 0
         temp = ord(byte110[0])
         if value == 0:
@@ -99,7 +143,7 @@ def oom_set_keyvalue(port, key, value):
         else:
             temp = set_bit(temp, 6)
         byte110[0] = chr(temp)
-        length = oom_set_memoryraw(port, 0xA2, 0, 110, 1, byte110[0])
+        length = oom_set_memory_sff(port, 0xA2, 0, 110, 1, byte110[0])
     return length                           # and return it
 
 
