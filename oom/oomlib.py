@@ -164,7 +164,8 @@ port_type_e = {
 # current implementation ties SFP and QSFP to the numbers '0' and '1'
 # Kludgy
 #
-mmbytype = [[]*2]
+# mmbytype = [[]*2]
+mmbytype = [sfp.MM, qsfp.MM]
 
 
 def getmm(type):
@@ -172,7 +173,7 @@ def getmm(type):
         if mmbytype[0] == []:
             mmbytype[0] = sfp.MM
         return(mmbytype[0])
-    if type == port_type_e['QSFP']:
+    if type == port_type_e['QSFP_PLUS']:
         if mmbytype[1] == []:
             mmbytype[1] = qsfp.MM
         return(mmbytype[1])

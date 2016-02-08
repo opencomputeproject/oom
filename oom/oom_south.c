@@ -12,7 +12,7 @@
 #include <string.h>
 #include "oom_south.h"
 
-#define MAXPORTS 4
+#define MAXPORTS 6
 
 /* pointers to the data, per port */
 /* memory will be allocated as needed for actual data */
@@ -74,103 +74,209 @@ int oom_get_portlist(oom_port_t portlist[])
 	char fname[18]; 
 	oom_port_t* pptr;
 	uint8_t* A0_data;
-	int i, j, k, stopit;
+	int port, stopit, dummy;
 	FILE* fp;
-	char inbuf[80];
-	char* retval;
 	size_t retcount;
 
 	if (initialized == 0) {
-		i = oom_maxports();  /* allocate memory for all ports */
+		dummy = oom_maxports();  /* allocate memory for all ports */
 	}
 
 	/* go ahead and reread the data files even if already initialized */
-	for (i = 0; i< MAXPORTS; i++) {
+	for (port = 0; port< MAXPORTS; port++) {
 		stopit = 0;
-		pptr = &portlist[i];
-		pptr->port_num = i;
+		pptr = &portlist[port];
+		pptr->port_num = port;
 		pptr->seq_num = 0;
-		pptr->port_flags = i*4;  /* different for each port */
+		pptr->port_flags = port*4;  /* different for each port */
 
 		/* Open, read, interpret the A0 data file */
-		sprintf(fname, "./module_data/%d.A0", i);
+		sprintf(fname, "./module_data/%d.A0", port);
 		fp = fopen(fname, "r");
 		if (fp == NULL) {
 			pptr->port_type = OOM_PORT_TYPE_NOT_PRESENT;
-			/* printf("module %d is not present (%s)\n", i, fname); */
+			printf("module %d is not present (%s)\n", port, fname);
 			/* perror("errno:"); */
 			stopit = 1;
 		} 
 		if (!stopit) {
-			A0_data = port_i2c_data[i] + 0xA0*256;
-			retcount = fread(A0_data, sizeof(uint8_t), 128, fp);
-			if (retcount != 128) {
-				printf("%s is not a module data file\n", fname);
-				pptr->port_type=OOM_PORT_TYPE_INVALID;
-				stopit = 1;
-			} else {
-				pptr->port_type = *A0_data;  /* first byte is type */
-				/*
-				printf("Port %d type: %d\n", i, pptr->port_type); 
-				*/
-			}
-
-		}
-
-		/* Open, read, interpret the A2/pages data file */
-		if (!stopit) {
-			sprintf(fname, "./module_data/%d.pages", i);
-			fp = fopen(fname, "r");
-			if (fp == NULL) {
-				pptr->port_type = OOM_PORT_TYPE_NOT_PRESENT;
-				/* 
-				printf("module %d is not present\n", i);
-				perror("errno:");
-				*/
-				stopit = 1;
-			} 
+		    A0_data = port_i2c_data[port] + 0xA0*256;
+		    retcount = fread(A0_data, sizeof(uint8_t), 1, fp);
+		    if (retcount != 1) {
+		        printf("%s is not a module data file\n", fname);
+		        pptr->port_type=OOM_PORT_TYPE_INVALID;
+		        stopit = 1;
+		    }
 		}
 		if (!stopit) {
-			retval = fgets(inbuf, 80, fp);
-			if ((retval == NULL) ||
-		    	    (strncmp(inbuf, ";FCC SETUP", 10) != 0)) {
-				printf("%s is not a module data file\n", fname);
-				pptr->port_type=OOM_PORT_TYPE_INVALID;
-				stopit = 1;
-			}
+	            if (*A0_data == 3) {  /* first byte is type, 3 == SFP */
+		        pptr->port_type = *A0_data;  
+			A0_data++;
+		        retcount = fread(A0_data, sizeof(uint8_t), 127, fp);
+			stopit = SFP_read_A2h(port, pptr);
+	             } else if (*A0_data == 'E') {
+			 stopit = QSFP_plus_read(port, pptr, fp);
+			 if (*A0_data == 0x0D) {
+				 pptr->port_type = *A0_data;
+			 } else {
+				 stopit = 1;
+			 }
+	             }
 		}
-
-		if (!stopit) {
-			/* skip the next 9 lines */
-			for (j = 0; j < 9; j++) {
-				retval = fgets(inbuf, 80, fp);
-			}
-
-			/* first block is A2 (lower) data */
-			readpage(fp, port_i2c_data[i] + 0xA2*256);
-
-			/* next 32 blocks are pages 0-31 */
-			/* for now, just read page 0 */
-
-			for (j = 0; j < 1; j++) {
-				stopit = readpage(fp, port_page_data[i] + j*128);
-			}
-		}
-		if (stopit == -1) {  /* problem somewhere in readpage() */
-			printf("%s is not a module data file\n", fname);
-			pptr->port_type=OOM_PORT_TYPE_INVALID;
-		}
+		/* copy this port into the global (permanent) port_array */
+		port_array[port] = portlist[port];
 	}
 	/* TODO - undo this kludge */
 	/* fake port 3 as a CFP port until file read ability shows up */
+	pptr = &portlist[3];
 	pptr->port_type=OOM_PORT_TYPE_CFP;
+}
+int QSFP_plus_read(int port, oom_port_t* pptr, FILE *fp)
+{
+	/* read QSFP Port data */
+	/* Using the already open A0 file pointer, should be pointing
+	 * at the second byte of the file, should be 7 lines of 
+	 * human text, followed by ASCII hex data for A0 and 4 pages
+	 */
+	int stopit;
+	int j;
+	char fname[18]; 
+	char* retval;
+	char inbuf[80];
+	uint8_t* A0_data;
 
-	/* copy the port_list into the global port_array */
-	for (i = 0; i < MAXPORTS; i++) {
-		port_array[i] = portlist[i];
+	/* get the REST of the first line, the 1st char has been read */
+	retval = fgets(inbuf, 80, fp);
+	if ((retval == NULL) ||
+	     (strncmp(inbuf, "EPROM Setup", 10) != 0)) {
+	  	 printf("%d.A0 is not a module data file\n", port);
+		 pptr->port_type=OOM_PORT_TYPE_INVALID;
+		 stopit = 1;
+	}
+
+	if (!stopit) {
+		/* skip the next 6 lines */
+		for (j = 0; j < 6; j++) {
+			retval = fgets(inbuf, 80, fp);
+		}
+
+		/* first block is A0 (lower) data */
+		QSFP_readpage(fp, port_i2c_data[port] + 0xA0*256);
+
+		/* next 32 blocks are pages 0-31 */
+		/* for QSFP+, read 4 pages */
+
+		for (j = 0; j < 4; j++) {
+			stopit = QSFP_readpage(fp, port_page_data[port] + j*128);
+		}
+	}
+	if (stopit == -1) {  /* problem somewhere in readpage() */
+		printf("%s is not a module data file\n", fname);
+		pptr->port_type=OOM_PORT_TYPE_INVALID;
 	}
 }
 
+int SFP_read_A2h(int port, oom_port_t* pptr)
+{
+	int stopit;
+	int j;
+	char fname[18]; 
+	FILE* fp;
+	char* retval;
+	char inbuf[80];
+
+	/* Open, read, interpret the A2/pages data file */
+	sprintf(fname, "./module_data/%d.pages", port);
+	fp = fopen(fname, "r");
+	if (fp == NULL) {
+		pptr->port_type = OOM_PORT_TYPE_NOT_PRESENT;
+		/* 
+		printf("module %d is not present\n", i);
+		perror("errno:");
+		*/
+		stopit = 1;
+	} 
+	if (!stopit) {
+		retval = fgets(inbuf, 80, fp);
+		if ((retval == NULL) ||
+	    	    (strncmp(inbuf, ";FCC SETUP", 10) != 0)) {
+			printf("%s is not a module data file\n", fname);
+			pptr->port_type=OOM_PORT_TYPE_INVALID;
+			stopit = 1;
+		}
+	}
+
+	if (!stopit) {
+		/* skip the next 9 lines */
+		for (j = 0; j < 9; j++) {
+			retval = fgets(inbuf, 80, fp);
+		}
+
+		/* first block is A2 (lower) data */
+		readpage(fp, port_i2c_data[port] + 0xA2*256);
+
+		/* next 32 blocks are pages 0-31 */
+		/* for now, just read page 0 */
+
+		for (j = 0; j < 1; j++) {
+			stopit = readpage(fp, port_page_data[port] + j*128);
+		}
+	}
+	if (stopit == -1) {  /* problem somewhere in readpage() */
+		printf("%s is not a module data file\n", fname);
+		pptr->port_type=OOM_PORT_TYPE_INVALID;
+	}
+}
+
+/* 
+ * QSFP_readpage() reads 128 byte blocks out of the <n>.A0 file
+ * decodes the hex, and puts the result into buf, leaving
+ * the file pointer ready to read the next block
+ */
+
+int QSFP_readpage(FILE* fp, char* buf)
+{
+	char inbuf[80];
+	char* retval;
+	int i, j, k;
+	char chin;
+	uint8_t chout;
+	int chout_int;
+	char *bufptr;
+
+	bufptr = buf;
+	for (i = 0; i< 8; i++) {   /* read 8 lines of data */
+		retval = fgets(inbuf, 80, fp);
+		if (retval != inbuf) {
+			printf("badly formatted module data file\n");
+			return(-1);
+		}
+
+		/* data looks like this:
+0030: 00 01 02 03 04 05 06 07 08 09 0A 0B 0C 0D 0E 0F
+          1         2         3         4         5
+01234567890123456789012345678901234567890123456789012
+		 *  4 char offset, 2 useless bytes
+		 *  then 16 bytes, as 2 hex chars, blank separating
+		 */
+		for (j = 6; j < 52; j += 3) {
+			chin = inbuf[j];
+			chout = (chin >= 'A') ? (10 + chin - 'A') : chin - '0';
+			chout *= 16;
+			chin = inbuf[j+1];
+			chout += (chin >= 'A') ? (10 + chin - 'A') : chin - '0';
+			*bufptr = chout;
+			chout_int = chout;
+			bufptr++;
+		}
+	
+	}
+	/* read 5 more lines of data, the spacers line between data blocks */
+	for (i = 0; i < 5; i++) {
+		retval = fgets(inbuf, 80, fp);
+	}
+	return(0);
+}
 /* 
  * readpage() reads 128 byte blocks out of the .eep file
  * decodes the hex, and puts the result into buf, leaving
@@ -197,10 +303,10 @@ int readpage(FILE* fp, char* buf)
 
 		/* data looks like this:
 		 
-.....0030: 00000000 0000FF01 23456748 29041100
+0030: 00000000 0000FF01 23456748 29041100
 0123456789012345678901234567890123456789012345
 
-		 *  5 blanks (dots here for readability), 4 char offset, 2 useless
+		 *  4 char offset, 2 useless bytes
 		 *  then 4 bytes, as 8 hex chars, a blank, and repeating
 		 */
 		for (j = 6; j < 35; j += 9) {

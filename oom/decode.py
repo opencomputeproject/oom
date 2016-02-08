@@ -129,6 +129,43 @@ def get_int(x):
     return result
 
 
+def get_high_nibl(x):
+    temp = ord(x[0])
+    temp &= 0xF0
+    return(temp)
+
+
+def get_low_nibl(x):
+    temp = ord(x[0])
+    temp &= 0x0F
+    return(temp)
+
+
+# return 2 bits
+
+def get2_bits(x, n):
+    temp = ord(x[0])
+    temp = temp >> n
+    temp %= 4
+    return(temp)
+
+
+def get2_bit6(x):
+    return(get2_bits(x, 6))
+
+
+def get2_bit4(x):
+    return(get2_bits(x, 4))
+
+
+def get2_bit2(x):
+    return(get2_bits(x, 2))
+
+
+def get2_bit0(x):
+    return(get2_bits(x, 0))
+
+
 # return true if bit 'n' of 'x' is set
 def get_bit(x, n):
     temp = ord(x[0])
