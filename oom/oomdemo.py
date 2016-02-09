@@ -73,3 +73,12 @@ status = oom_set_keyvalue(port, 'SOFT_TX_DISABLE_SELECT', 0)
 print 'Newer value of TX_DISABLE: ' + \
         str(oom_get_keyvalue(port, 'SOFT_TX_DISABLE_SELECT'))
 print '*******************'
+
+# demo QSFP+ 
+print 'QSFP+ demo'
+port = oom_get_port(5)   # in the southbound shim, 5 is a QSFP port
+print 'port 5, page 1 (QSFP, 0xA0, page 0, offset 128, 128 bytes)'
+print_block_hex(oom_get_memoryraw(port, 0xA0, 0, 128, 128))
+print '*******************'
+print 'Serial ID keys (all from page 0)'
+print "SERIAL_ID: " + str(oom_get_memory(port, "SERIAL_ID"))

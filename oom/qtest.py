@@ -16,8 +16,13 @@ from oomlib import getmm, getfm     # oom internals to get the key lists
 from decode import hexstr           # helper function from the decode pack
 
 
-# open port 0
-port = oom_get_port(0)
+# open port 5
+port = oom_get_port(5)
+print '0xA0, page 0, offset 0, 128 bytes'
+print_block_hex(oom_get_memoryraw(port, 0xA0, 0, 0, 128))
+print
+print '0xA0, page 0, offset 128, 128 bytes'
+print_block_hex(oom_get_memoryraw(port, 0xA0, 0, 128, 128))
 
 # get the internal list of keys and decoders for this type of module
 # report their values for this port

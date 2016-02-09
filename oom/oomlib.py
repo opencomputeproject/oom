@@ -13,7 +13,7 @@
 # ////////////////////////////////////////////////////////////////////
 
 import sfp
-import qsfp
+import qsfp_plus
 import decode
 
 import struct
@@ -208,7 +208,8 @@ port_type_e = {
 # current implementation ties SFP and QSFP to the numbers '0' and '1'
 # Kludgy
 #
-mmbytype = [[]*2]
+# mmbytype = [[]*2]
+mmbytype = [sfp.MM, qsfp_plus.MM]
 
 
 def getmm(type):
@@ -216,9 +217,9 @@ def getmm(type):
         if mmbytype[0] == []:
             mmbytype[0] = sfp.MM
         return(mmbytype[0])
-    if type == port_type_e['QSFP']:
+    if type == port_type_e['QSFP_PLUS']:
         if mmbytype[1] == []:
-            mmbytype[1] = qsfp.MM
+            mmbytype[1] = qsfp_plus.MM
         return(mmbytype[1])
     return []
 
@@ -226,7 +227,7 @@ def getmm(type):
 #
 # get the mapping, which functions include which keys
 #
-fmbytype = [[]*2]
+fmbytype = [sfp.FM, qsfp_plus.FM]
 
 
 def getfm(type):
@@ -234,9 +235,9 @@ def getfm(type):
         if fmbytype[0] == []:
             fmbytype[0] = sfp.FM
         return(fmbytype[0])
-    if type == port_type_e['QSFP']:
+    if type == port_type_e['QSFP_PLUS']:
         if fmbytype[1] == []:
-            fmbytype[1] = qsfp.fM
+            fmbytype[1] = qsfp_plus.FM
         return(fmbytype[1])
     return []
 

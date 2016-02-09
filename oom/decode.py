@@ -129,6 +129,43 @@ def get_int(x):
     return result
 
 
+def get_high_nibl(x):
+    temp = ord(x[0])
+    temp &= 0xF0
+    return(temp)
+
+
+def get_low_nibl(x):
+    temp = ord(x[0])
+    temp &= 0x0F
+    return(temp)
+
+
+# return 2 bits
+
+def get2_bits(x, n):
+    temp = ord(x[0])
+    temp = temp >> n
+    temp %= 4
+    return(temp)
+
+
+def get2_bit6(x):
+    return(get2_bits(x, 6))
+
+
+def get2_bit4(x):
+    return(get2_bits(x, 4))
+
+
+def get2_bit2(x):
+    return(get2_bits(x, 2))
+
+
+def get2_bit0(x):
+    return(get2_bits(x, 0))
+
+
 # return true if bit 'n' of 'x' is set
 def get_bit(x, n):
     temp = ord(x[0])
@@ -171,7 +208,10 @@ def get_bit0(x):
 
 def get_bitrate(x):         # returns nominal bit rate IN MB/s
     rate = ord(x[0])
-    if rate == 255:          # special case, need to use byte 66!
+    # take care here...
+    # SFP has a special case for rate 0xFF, encoded here
+    # QSFP+ does not have the special case, so only 1 byte is sent
+    if ((rate == 255) and (len(x) > 1)):
         if (len(x) < 55):
             print "can't decode bit rate"
             return
@@ -239,7 +279,11 @@ def get_length_10m(x):   # returns supported link length in meters
     return ord(x[0]) * 10
 
 
-def get_length_omcu(x):   # length in meters, optical OR COPPER
+def get_length_2m(x):   # returns supported link length in meters
+    return ord(x[0]) * 2
+
+
+def get_length_omcu(x):   # SFP: length in meters, optical OR COPPER
     if (len(x) < 11):
         print "can't decode OM4/CU max cable length"
         return
@@ -248,10 +292,20 @@ def get_length_omcu(x):   # length in meters, optical OR COPPER
     valid /= 4           # lose bits below 2
     if valid == 0:       # if bits 2 and 3 are 0, then optical
         return ord(x[10]) * 10  # Optical, stored value is in 10s of meters
-    return ord(x[10])    # Copper, stored value is in meters
+    return ord(x[1])    # Copper, stored value is in meters
 
 
-def get_wavelength(x):   # requires byte 8 and byte 60, 61
+def get_length_omcu2(x):   # QSFP+: length in meters, optical OR COPPER
+    if (len(x) < 2):
+        print "can't decode OM4/CU max cable length"
+        return
+    txtech = ord(x[1])/16     # Transmitter Technology, byte 147, bits 7-4
+    if txtech == 0:      # 850 nm VCSEL
+        return ord(x[0]) * 2  # OM4, stored value is in units of 2 meters
+    return ord(x[0])    # Copper, stored value is in meters
+
+
+def get_wavelength(x):   # SFP: requires byte 8 and byte 60, 61
     if (len(x) < 54):
         print "can't decode wavelength"
         return
@@ -275,6 +329,47 @@ def get_cablespec(x):    # requires byte 8 and byte 60, 61
     if valid == 0:       # optical, cable spec doesn't apply
         result = b'\x00\x00'
     return result
+
+
+def get_wavelength2(x):   # QSFP: requires byte 147, 186, 187
+    if (len(x) < 41):
+        print "can't decode wavelength"
+        return
+    txtech = ord(x[1])/16     # Transmitter Technology, byte 147, bits 7-4
+    if txtech >= 10:    # copper technology
+        return(0)
+    wavelen = ord(x[39])*256 + ord(x[40])
+    wavelen = wavelen * 0.05  # value is 20ths of a nanometer!
+    return wavelen
+
+
+def get_wave_tol(x):   # 2 bytes, in 200ths of a nm, return value in nm
+    if (len(x) < 2):
+        print "can't decode wavelength tolerance"
+        return
+    wave_tol = ord(x[0])*256 + ord(x[1])
+    wave_tol = wave_tol * 0.005  # value is 200ths of a nm
+    return wave_tol
+
+
+def get_CU_2_5(x):    # requires byte 147, 186
+    if (len(x) < 40):
+        print "can't decode copper attenuation"
+        return
+    txtech = ord(x[1])/16     # Transmitter Technology, byte 147, bits 7-4
+    if txtech >= 10:    # copper technology
+        return(ord(x[39]))
+    return 0
+
+
+def get_CU_5_0(x):    # requires byte 147, 187
+    if (len(x) < 41):
+        print "can't decode copper attenuation"
+        return
+    txtech = ord(x[1])/16     # Transmitter Technology, byte 147, bits 7-4
+    if txtech >= 10:    # copper technology
+        return(ord(x[40]))
+    return 0
 
 
 def hexstr(x):

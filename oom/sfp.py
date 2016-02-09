@@ -38,7 +38,7 @@ MM = {
      'DIAGNOSTIC_MONITORING_TYPE': ('get_bytes', 0xA0, 0, 92, 1),
      'ENHANCED_OPTIONS': ('get_bytes', 0xA0, 0, 93, 1),
      'SFF_8472_COMPLIANCE': ('get_int', 0xA0, 0, 94, 1),
-     'VENDOR_SPECIFIC_EEPROM': ('get_bytes', 0xA0, 0, 96, 32),
+     'VENDOR_SPECIFIC_96': ('get_bytes', 0xA0, 0, 96, 32),
 
      'TEMPERATURE':      ('get_temperature', 0xA2, 0, 96, 2),
      'VCC':              ('get_voltage', 0xA2, 0, 98, 2),

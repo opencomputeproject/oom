@@ -1,11 +1,12 @@
 # make the C southbound library, organize the pieces
 
-SRC = oom_south.h oom_south.c oomsouth_driver.c makefile sfp.py qsfp.py \
+SRC = oom_south.h oom_south.c oomsouth_driver.c makefile sfp.py qsfp_plus.py \
       oomdemo.py decode.py oomlib.py \
       MUP0WB0_EEPROM_20160108_192637.txt \
       MUP0WB0_FCCABY_20160108_192637.txt \
       MUQ1BZB_EEPROM_20160108_192514.txt \
-      MUQ1BZB_FCCABY_20160108_192514.txt
+      MUQ1BZB_FCCABY_20160108_192514.txt \
+      qsfpdatafile.txt
 
 OBJ = ./lib/oom_south.so oomsouth_driver.exe
 
@@ -15,6 +16,7 @@ all: $(SRC) $(OBJ)
 	cp MUP0WB0_FCCABY_20160108_192637.txt module_data/0.pages
 	cp MUQ1BZB_EEPROM_20160108_192514.txt module_data/2.A0
 	cp MUQ1BZB_FCCABY_20160108_192514.txt module_data/2.pages
+	cp qsfpdatafile.txt module_data/5.A0
 	
 
 oomsouth_driver.exe: oomsouth_driver.c ./lib/oom_south.so makefile
