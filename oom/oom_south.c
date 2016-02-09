@@ -87,27 +87,27 @@ int oom_get_portlist(oom_port_t portlist[], int listsize)
 			/* perror("errno:"); */
 			stopit = 1;
 		} 
-		if (!stopit) {
+		if (stopit == 0) {
 		    A0_data = port_i2c_data[port] + 0xA0*256;
 		    retcount = fread(A0_data, sizeof(uint8_t), 1, fp);
 		    if (retcount != 1) {
-		        printf("%s is not a module data file\n", fname);
+		        printf("%s is not a module data file(1)\n", fname);
 			pptr->oom_class = OOM_PORT_CLASS_UNKNOWN;
 		        stopit = 1;
 		    }
 		}
-		if (!stopit) {
+		if (stopit == 0) {
 	            if (*A0_data == 3) {  /* first byte is type, 3 == SFP */
 			A0_data++;
 		        retcount = fread(A0_data, sizeof(uint8_t), 127, fp);
-			stopit = SFP_read_A2h(port, pptr);
+			stopit = SFP_read_A2h(port, pptr)    ;
 	            } else if (*A0_data == 'E') {
 		         stopit = QSFP_plus_read(port, pptr, fp);
 	            }
-		}
-		if (!stopit) {  /* problem somewhere in *read() */
-		    printf("%s is not a module data file\n", fname);
-		    pptr->oom_class = OOM_PORT_CLASS_UNKNOWN;
+		    if (stopit != 0) {  /* problem somewhere in *read() */
+		        printf("%s is not a module data file(2)\n", fname);
+		        pptr->oom_class = OOM_PORT_CLASS_UNKNOWN;
+		    }
 		}
 		/* copy this port into the global (permanent) port_array */
 		port_array[port] = portlist[port];
@@ -137,12 +137,12 @@ int QSFP_plus_read(int port, oom_port_t* pptr, FILE *fp)
 	retval = fgets(inbuf, 80, fp);
 	if ((retval == NULL) ||
 	     (strncmp(inbuf, "EPROM Setup", 10) != 0)) {
-	  	 printf("%d.A0 is not a module data file\n", port);
+	  	 printf("%d.A0 is not a module data file(3)\n", port);
 		 pptr->oom_class = OOM_PORT_CLASS_UNKNOWN;
 		 stopit = 1;
 	}
 
-	if (!stopit) {
+	if (stopit == 0) {
 		/* skip the next 6 lines */
 		for (j = 0; j < 6; j++) {
 			retval = fgets(inbuf, 80, fp);
@@ -158,8 +158,8 @@ int QSFP_plus_read(int port, oom_port_t* pptr, FILE *fp)
 			stopit = QSFP_readpage(fp, port_page_data[port] + j*128);
 		}
 	}
-	if (stopit == -1) {  /* problem somewhere in readpage() */
-		printf("%s is not a module data file\n", fname);
+	if (stopit != 0) {  /* problem somewhere in readpage() */
+		printf("%s is not a module data file(4)\n", fname);
 		pptr->oom_class = OOM_PORT_CLASS_UNKNOWN;
 	}
 }
@@ -185,17 +185,17 @@ int SFP_read_A2h(int port, oom_port_t* pptr)
 		*/
 		stopit = 1;
 	} 
-	if (!stopit) {
+	if (stopit == 0) {
 		retval = fgets(inbuf, 80, fp);
 		if ((retval == NULL) ||
 	    	    (strncmp(inbuf, ";FCC SETUP", 10) != 0)) {
-			printf("%s is not a module data file\n", fname);
+			printf("%s is not a module data file(5)\n", fname);
 			pptr->oom_class = OOM_PORT_CLASS_UNKNOWN;
 			stopit = 1;
 		}
 	}
 
-	if (!stopit) {
+	if (stopit == 0) {
 		/* skip the next 9 lines */
 		for (j = 0; j < 9; j++) {
 			retval = fgets(inbuf, 80, fp);
@@ -211,8 +211,8 @@ int SFP_read_A2h(int port, oom_port_t* pptr)
 			stopit = readpage(fp, port_page_data[port] + j*128);
 		}
 	}
-	if (!stopit) {  /* problem somewhere in readpage() */
-		printf("%s is not a module data file\n", fname);
+	if (stopit != 0) {  /* problem somewhere in readpage() */
+		printf("%s is not a module data file(6z)\n", fname);
 		pptr->oom_class = OOM_PORT_CLASS_UNKNOWN;
 	}
 	return(stopit);
