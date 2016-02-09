@@ -183,7 +183,7 @@ def getmm(type):
 #
 # get the mapping, which functions include which keys
 #
-fmbytype = [[]*2]
+fmbytype = [sfp.FM, qsfp_plus.FM]
 
 
 def getfm(type):
@@ -191,9 +191,9 @@ def getfm(type):
         if fmbytype[0] == []:
             fmbytype[0] = sfp.FM
         return(fmbytype[0])
-    if type == port_type_e['QSFP']:
+    if type == port_type_e['QSFP_PLUS']:
         if fmbytype[1] == []:
-            fmbytype[1] = qsfp_plus.fM
+            fmbytype[1] = qsfp_plus.FM
         return(fmbytype[1])
     return []
 
