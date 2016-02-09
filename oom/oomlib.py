@@ -48,7 +48,7 @@ class c_port_t(Structure):
 
 
 # This class is the python port, which includes the C definition
-# of a port, plus other useful things, including the port type, 
+# of a port, plus other useful things, including the port type,
 # and the keymap for that port.
 class port:
     def __init__(self):
@@ -56,10 +56,9 @@ class port:
 
     def add_c_port(self, c_port):
         self.c_port = c_port
-        self.port_name = '' 
+        self.port_name = ''
         for i in range(32):
             self.port_name += chr(c_port.name[i])
-
 
     def add_port_type(self, port_type):
         self.port_type = port_type
@@ -81,7 +80,7 @@ def oom_get_port(n):
 # of the port_t structure.  Allocate the memory here.
 #
 def oom_get_portlist():
-    numports = oomsouth.oom_get_portlist(0,0)
+    numports = oomsouth.oom_get_portlist(0, 0)
     cport_array = c_port_t * numports
     cport_list = cport_array()
     retval = oomsouth.oom_get_portlist(cport_list, numports)
@@ -114,7 +113,7 @@ def get_port_type(port):
 def oom_get_memory_sff(port, address, page, offset, length):
     data = create_string_buffer(length)   # allocate space
     retlen = oomsouth.oom_get_memory_sff(byref(port.c_port), address,
-                                        page, offset, length, data)
+                                         page, offset, length, data)
     return data
 
 
@@ -124,7 +123,7 @@ def oom_get_memory_sff(port, address, page, offset, length):
 def oom_set_memory_sff(port, address, page, offset, length, data):
     # data = create_string_buffer(length)   # allocate space
     retlen = oomsouth.oom_set_memory_sff(byref(port.c_port), address,
-                                        page, offset, length, data)
+                                         page, offset, length, data)
     return retlen
 
 

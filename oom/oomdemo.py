@@ -74,7 +74,7 @@ print 'Newer value of TX_DISABLE: ' + \
         str(oom_get_keyvalue(port, 'SOFT_TX_DISABLE_SELECT'))
 print '*******************'
 
-# demo QSFP+ 
+# demo QSFP+
 print 'QSFP+ demo'
 port = oom_get_port(5)   # in the southbound shim, 5 is a QSFP port
 print 'port 5, page 1 (QSFP, 0xA0, page 0, offset 128, 128 bytes)'
