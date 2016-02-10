@@ -90,6 +90,10 @@ MM = {                  # decoder, addr, page, offset,length
     'TX2_BIAS':         ('get_current', 0xA0, 0, 44, 2),
     'TX3_BIAS':         ('get_current', 0xA0, 0, 46, 2),
     'TX4_BIAS':         ('get_current', 0xA0, 0, 48, 2),
+    'TX1_POWER':        ('get_power', 0xA0, 0, 50, 2),
+    'TX2_POWER':        ('get_power', 0xA0, 0, 52, 2),
+    'TX3_POWER':        ('get_power', 0xA0, 0, 54, 2),
+    'TX4_POWER':        ('get_power', 0xA0, 0, 56, 2),
     'VENDOR_SPECIFIC_66':     ('get_bytes', 0xA0, 0, 66, 16),
 
     # Control Bytes (86-97)
@@ -192,4 +196,20 @@ FM = {
                   'WAVELEN_TOLERANCE',
                   'MAX_CASE_TEMP'
                   ),
+
+    'DOM':      ('TEMPERATURE', 
+                 'SUPPLY_VOLTAGE',
+                 'TX1_BIAS',
+                 'TX2_BIAS',
+                 'TX3_BIAS',
+                 'TX4_BIAS',
+                 'TX1_POWER',
+                 'TX2_POWER',
+                 'TX3_POWER',
+                 'TX4_POWER',
+                 'RX1_POWER',
+                 'RX2_POWER',
+                 'RX3_POWER',
+                 'RX4_POWER',
+                 )
     }
