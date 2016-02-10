@@ -1,6 +1,6 @@
 # qsfp_plus.py
 # qsfp+ memory map
-# based on SFF-8436, rev 4.8, Section 7.6, and SFF-8024
+# based on SFF-8636, rev 2.6, Section 6, and SFF-8024
 # Note that values that range from 0-n are returned as integers (get_int)
 # Keys that are encoded as bit fields are returned as raw bytes (get_bytes)
 
@@ -8,8 +8,10 @@
 MM = {                  # decoder, addr, page, offset,length
     # ID and status bytes (0-2)
     'IDENTIFIER':       ('get_int', 0xA0, 0, 0, 1),
+    'REV_COMPLIANCE':   ('get_int', 0xA0, 0, 1, 1),
     'FLAT_MEM':         ('get_bit2', 0xA0, 0, 2, 1),
     'INT_L':            ('get_bit1', 0xA0, 0, 2, 1),
+    'DATA_NOT_READY':   ('get_bit0', 0xA0, 0, 2, 1),
 
     # Interrupt Flags bytes (3-21)
     'L_TX_RX_LOS':      ('get_bytes', 0xA0, 0, 3, 1),  # All 8 LOS bits
@@ -21,11 +23,26 @@ MM = {                  # decoder, addr, page, offset,length
     'L_RX3_LOS':        ('get_bit2', 0xA0, 0, 3, 1),
     'L_RX2_LOS':        ('get_bit1', 0xA0, 0, 3, 1),
     'L_RX1_LOS':        ('get_bit0', 0xA0, 0, 3, 1),
-    'L_TX_FAULT':       ('get_low_nibl', 0xA0, 0, 4, 1),  # all 4 Fault bits
+
+    'L_TX_FAULT':       ('get_bytes', 0xA0, 0, 4, 1),  # all 8 Fault bits
+    'L_TX4_ADAPT_EQ_FAULT': ('get_bit7', 0xA0, 0, 4, 1),
+    'L_TX3_ADAPT_EQ_FAULT': ('get_bit6', 0xA0, 0, 4, 1),
+    'L_TX2_ADAPT_EQ_FAULT': ('get_bit5', 0xA0, 0, 4, 1),
+    'L_TX1_ADAPT_EQ_FAULT': ('get_bit4', 0xA0, 0, 4, 1),
     'L_TX4_FAULT':      ('get_bit3', 0xA0, 0, 4, 1),
     'L_TX3_FAULT':      ('get_bit2', 0xA0, 0, 4, 1),
     'L_TX2_FAULT':      ('get_bit1', 0xA0, 0, 4, 1),
     'L_TX1_FAULT':      ('get_bit0', 0xA0, 0, 4, 1),
+
+    'L_TX_RX_LOL':      ('get_bytes', 0xA0, 0, 5, 1),  # All 8 LOL bits
+    'L_TX4_LOL':        ('get_bit7', 0xA0, 0, 5, 1),   # Laugh Out Loud?
+    'L_TX3_LOL':        ('get_bit6', 0xA0, 0, 5, 1),
+    'L_TX2_LOL':        ('get_bit5', 0xA0, 0, 5, 1),
+    'L_TX1_LOL':        ('get_bit4', 0xA0, 0, 5, 1),
+    'L_RX4_LOL':        ('get_bit3', 0xA0, 0, 5, 1),
+    'L_RX3_LOL':        ('get_bit2', 0xA0, 0, 5, 1),
+    'L_RX2_LOL':        ('get_bit1', 0xA0, 0, 5, 1),
+    'L_RX1_LOL':        ('get_bit0', 0xA0, 0, 5, 1),
 
     'L_TEMP_ALARM_WARN':   ('get_high_nibl', 0xA0, 0, 6, 1),  # all 4 temps
     'L_TEMP_HIGH_ALARM':   ('get_bit7', 0xA0, 0, 6, 1),
@@ -33,6 +50,13 @@ MM = {                  # decoder, addr, page, offset,length
     'L_TEMP_HIGH_WARNING': ('get_bit5', 0xA0, 0, 6, 1),
     'L_TEMP_LOW_WARNING':  ('get_bit4', 0xA0, 0, 6, 1),
     'INIT_COMPLETE':    ('get_bit0', 0xA0, 0, 6, 1),
+
+    'L_VCC_ALARM_WARN': ('get_high_nibl', 0xA0, 0, 7, 1),  # all 4 VCC
+    'L_VCC_HIGH_ALARM': ('get_bit7', 0xA0, 0, 7, 1),
+    'L_VCC_LOW_ALARM':  ('get_bit6', 0xA0, 0, 7, 1),
+    'L_VCC_HIGH_WARN':  ('get_bit5', 0xA0, 0, 7, 1),
+    'L_VCC_LOW_WARN':   ('get_bit4', 0xA0, 0, 7, 1),
+    'VENDOR_SPECIFIC_8':  ('get_bytes', 0xA0, 0, 8, 1),
 
     'L_RX1_RX2_POWER':     ('get_bytes', 0xA0, 0, 9, 1),   # all 8 power bits
     'L_RX1_POWER_HIGH_ALARM':  ('get_bit7', 0xA0, 0, 9, 1),
@@ -74,9 +98,29 @@ MM = {                  # decoder, addr, page, offset,length
     'L_TX4_BIAS_HIGH_WARN':   ('get_bit1', 0xA0, 0, 12, 1),
     'L_TX4_BIAS_LOW_WARN':    ('get_bit0', 0xA0, 0, 12, 1),
 
+    'L_TX1_TX2_POWER':     ('get_bytes', 0xA0, 0, 13, 1),   # all 8 POWER bits
+    'L_TX1_POWER_HIGH_ALARM':  ('get_bit7', 0xA0, 0, 13, 1),
+    'L_TX1_POWER_LOW_ALARM':   ('get_bit6', 0xA0, 0, 13, 1),
+    'L_TX1_POWER_HIGH_WARN':   ('get_bit5', 0xA0, 0, 13, 1),
+    'L_TX1_POWER_LOW_WARN':    ('get_bit4', 0xA0, 0, 13, 1),
+    'L_TX2_POWER_HIGH_ALARM':  ('get_bit3', 0xA0, 0, 13, 1),
+    'L_TX2_POWER_LOW_ALARM':   ('get_bit2', 0xA0, 0, 13, 1),
+    'L_TX2_POWER_HIGH_WARN':   ('get_bit1', 0xA0, 0, 13, 1),
+    'L_TX2_POWER_LOW_WARN':    ('get_bit0', 0xA0, 0, 13, 1),
+
+    'L_TX3_TX4_POWER':     ('get_bytes', 0xA0, 0, 14, 1),   # all 8 POWER bits
+    'L_TX3_POWER_HIGH_ALARM':  ('get_bit7', 0xA0, 0, 14, 1),
+    'L_TX3_POWER_LOW_ALARM':   ('get_bit6', 0xA0, 0, 14, 1),
+    'L_TX3_POWER_HIGH_WARN':   ('get_bit5', 0xA0, 0, 14, 1),
+    'L_TX3_POWER_LOW_WARN':    ('get_bit4', 0xA0, 0, 14, 1),
+    'L_TX4_POWER_HIGH_ALARM':  ('get_bit3', 0xA0, 0, 14, 1),
+    'L_TX4_POWER_LOW_ALARM':   ('get_bit2', 0xA0, 0, 14, 1),
+    'L_TX4_POWER_HIGH_WARN':   ('get_bit1', 0xA0, 0, 14, 1),
+    'L_TX4_POWER_LOW_WARN':    ('get_bit0', 0xA0, 0, 14, 1),
+
     'VENDOR_SPECIFIC_19':     ('get_bytes', 0xA0, 0, 19, 3),
 
-    # Module Monitors Bytes (22-33)
+    # Free Side Device Monitors Bytes (22-33)
     'TEMPERATURE':            ('get_temperature', 0xA0, 0, 22, 2),
     'SUPPLY_VOLTAGE':         ('get_voltage', 0xA0, 0, 26, 2),
     'VENDOR_SPECIFIC_30':     ('get_bytes', 0xA0, 0, 30, 4),
@@ -94,9 +138,9 @@ MM = {                  # decoder, addr, page, offset,length
     'TX2_POWER':        ('get_power', 0xA0, 0, 52, 2),
     'TX3_POWER':        ('get_power', 0xA0, 0, 54, 2),
     'TX4_POWER':        ('get_power', 0xA0, 0, 56, 2),
-    'VENDOR_SPECIFIC_66':     ('get_bytes', 0xA0, 0, 66, 16),
+    'VENDOR_SPECIFIC_74':     ('get_bytes', 0xA0, 0, 74, 8),
 
-    # Control Bytes (86-97)
+    # Control Bytes (86-98)
     'TX_DISABLE':       ('get_low_nibl', 0xA0, 0, 86, 1),
     'TX4_DISABLE':      ('get_bit3', 0xA0, 0, 86, 1),
     'TX3_DISABLE':      ('get_bit2', 0xA0, 0, 86, 1),
@@ -120,6 +164,7 @@ MM = {                  # decoder, addr, page, offset,length
     'RX2_APPLICATION_SELECT': ('get_bytes', 0xA0, 0, 91, 1),
     'RX1_APPLICATION_SELECT': ('get_bytes', 0xA0, 0, 92, 1),
 
+    'HIGH_POWER_CLASS_ENABLE': ('get_bit2', 0xA0, 0, 93, 1),
     'POWER_SET':        ('get_bit1', 0xA0, 0, 93, 1),
     'POWER_OVERRIDE':   ('get_bit0', 0xA0, 0, 93, 1),
 
@@ -128,20 +173,42 @@ MM = {                  # decoder, addr, page, offset,length
     'TX2_APPLICATION_SELECT': ('get_bytes', 0xA0, 0, 96, 1),
     'TX1_APPLICATION_SELECT': ('get_bytes', 0xA0, 0, 97, 1),
 
-    # Free Side Device and Channel Mask (98-106)
-    'M_TX_RX_LOS':      ('get_bytes', 0xA0, 0, 100, 1),  # all 8 LOS bits
-    'M_TX_FAULT':       ('get_low_nibl', 0xA0, 0, 101, 1),  # all 4 FAULT
+    'TX_RX_CDR_CONTROL': ('get_bytes', 0xA0, 0, 98, 1),   # all 8 CDR bits
+    'TX4_CDR_CONTROL': ('get_bit7', 0xA0, 0, 98, 1),
+    'TX3_CDR_CONTROL': ('get_bit6', 0xA0, 0, 98, 1),
+    'TX2_CDR_CONTROL': ('get_bit5', 0xA0, 0, 98, 1),
+    'TX1_CDR_CONTROL': ('get_bit4', 0xA0, 0, 98, 1),
+    'RX4_CDR_CONTROL': ('get_bit3', 0xA0, 0, 98, 1),
+    'RX3_CDR_CONTROL': ('get_bit2', 0xA0, 0, 98, 1),
+    'RX2_CDR_CONTROL': ('get_bit1', 0xA0, 0, 98, 1),
+    'RX1_CDR_CONTROL': ('get_bit0', 0xA0, 0, 98, 1),
+
+
+    # Free Side Device and Channel Masks (100-104)
+    'M_TX_RX_LOS':       ('get_bytes', 0xA0, 0, 100, 1),  # all 8 LOS bits
+    'M_TX_ADAPT_EQ_FAULT':  ('get_high_nibl', 0xA0, 0, 101, 1),  # all 4
+    'M_TX_FAULT':        ('get_low_nibl', 0xA0, 0, 101, 1),  # all 4 FAULT
+    'M_TX_RX_CDR_LOL':   ('get_bytes', 0xA0, 0, 102, 1),  # all 8 LOS bits
     'M_TEMP_ALARM_WARN': ('get_high_nibl', 0xA0, 0, 103, 1),
-    'M_INITIALIZE_COMP': ('get_bit0', 0xA0, 0, 103, 1),
     'M_VCC_ALARM_WARN':  ('get_high_nibl', 0xA0, 0, 104, 1),
     'VENDOR_SPECIFIC_105': ('get_bytes', 0xA0, 0, 105, 2),
 
+    # Free Side Device Properties
+    'PROPAGATION_DELAY': ('get_intX10', 0xA0, 0, 108, 2),
+    'ADVANCED_LOW_POWER_MODE': ('get_high_nibl', 0xA0, 0, 110, 1),
+    'FAR_SIDE_MANAGED': ('get3_bit2', 0xA0, 0, 110, 1), # Gary Larson?
+    'FAR_END_IMPLEMENT': ('get3_bit6', 0xA0, 0, 113, 1),
+    'NEAR_END_IMPLEMENT': ('get_low_nibl', 0xA0, 0, 113, 1),
+
+
     # Password Change Entry Area (119-122)
     # password Entry Area (123-126)
-    # note: "Password entry bytes are write only"
+    # note: "Password entry bytes are write only", thus no read keys here
 
     # Page 0, Serial ID fields
-    #   'IDENTIFIER':       ('get_int', 0xA0, 0, 128, 1), REDUNDANT w A0,0,0,1
+    # Note, per the spec: Page 00h Byte 0 and Page 00h Byte 128 shall
+    # contain the same parameter values.
+    #   'IDENTIFIER':   ('get_int', 0xA0, 0, 128, 1), REDUNDANT w A0,0,0,1
     'EXT_IDENTIFIER':   ('get_int', 0xA0, 0, 129, 1),
     'CONNECTOR':        ('get_int', 0xA0, 0, 130, 1),
     'SPEC_COMPLIANCE':  ('get_bytes', 0xA0, 0, 131, 8),       # see table 33
