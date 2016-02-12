@@ -196,7 +196,7 @@ MM = {                  # decoder, addr, page, offset,length
     # Free Side Device Properties
     'PROPAGATION_DELAY': ('get_intX10', 0xA0, 0, 108, 2),
     'ADVANCED_LOW_POWER_MODE': ('get_high_nibl', 0xA0, 0, 110, 1),
-    'FAR_SIDE_MANAGED': ('get3_bit2', 0xA0, 0, 110, 1), # Gary Larson?
+    'FAR_SIDE_MANAGED': ('get3_bit2', 0xA0, 0, 110, 1),  # Gary Larson?
     'FAR_END_IMPLEMENT': ('get3_bit6', 0xA0, 0, 113, 1),
     'NEAR_END_IMPLEMENT': ('get_low_nibl', 0xA0, 0, 113, 1),
 
@@ -264,7 +264,7 @@ FM = {
                   'MAX_CASE_TEMP'
                   ),
 
-    'DOM':      ('TEMPERATURE', 
+    'DOM':      ('TEMPERATURE',
                  'SUPPLY_VOLTAGE',
                  'TX1_BIAS',
                  'TX2_BIAS',

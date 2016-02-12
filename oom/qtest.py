@@ -27,7 +27,7 @@ print_block_hex(oom_get_memory_sff(port, 0xA0, 0, 128, 128))
 # get the internal list of keys and decoders for this type of module
 # report their values for this port
 keymap = getmm(port.port_type)
-print keymap
+print str(len(keymap.keys())) + ' keys implemented'
 for keyx in sorted(keymap.keys()):
     if len(keymap[keyx]) == 5:
         if keymap[keyx][0] == 'get_bytes':
