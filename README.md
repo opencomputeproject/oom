@@ -9,21 +9,19 @@ port of a switch.  In addition to key/value read access, the OOM
 project also supports key/value write to a limited number of EEPROM
 locations, and raw read/write access directly to EEPROM.
 
-NEWS:  February 9, 2016
+NEWS:  February 11, 2016
 
-   BETA code is on the master branch, it is a bit out of date
+   Gravitational waves detected at LIGO. A big day for physics!
 
-   Better code is on the dev branch, with QSFP+ keys now supported
+   The new Southbound API is now committed to the master branch, 
+   and should be considered accepted for development going forward.
 
-   There are changes proposed to the Southbound API, which affect
-   both the shims (from switches and NOSs) and the OOM library.  The
-   new oom_south.h, a working test shim, and fully functional OOM
-   library code (including QSFP+) are available on the newsouth branch.
+   The 'dev' branch will contain latest updates going forward, and
+   is also based on the new Southbound API
 
-   All of these branches include the southbound test shim to run 
-   the code in a Linux or Linux-like environment without optical
-   modules.  The OOM library decodes keys for SFP and QSFP+ modules.
-   Demo code exercises the decode library.
+   BETA, demo_code and newsouth branches have been removed.  Master
+   is stable and complete, previous branches are out of date.
+
 
 More mundane stuff...
 
