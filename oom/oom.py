@@ -45,7 +45,7 @@ def oom_get_keyvalue(port, key):
     if key not in mm:
         return ''
     par = (port,) + mm[key][1:]           # get the parameters
-    raw_data = oom_get_memoryraw(*par)    # get the data
+    raw_data = oom_get_memory_sff(*par)    # get the data
     decoder = getattr(decodelib, mm[key][0])  # get the decoder
     temp = decoder(raw_data)              # get the value
     return temp                           # and return it
@@ -76,9 +76,9 @@ def oom_get_memory(port, function):
 #
 # TODO - throw an exception if len != length
 #
-def oom_get_memoryraw(port, address, page, offset, length):
-    return oomlib.oom_get_memoryraw(port, address, page, offset, length)
+def oom_get_memory_sff(port, address, page, offset, length):
+    return oomlib.oom_get_memory_sff(port, address, page, offset, length)
 
 
-def oom_set_memoryraw(port, address, page, offset, length, data):
-    return oomlib.oom_set_memoryraw(port, address, page, offset, length, data)
+def oom_set_memory_sff(port, address, page, offset, length, data):
+    return oomlib.oom_set_memory_sff(port, address, page, offset, length, data)

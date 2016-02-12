@@ -17,13 +17,6 @@
 #include <stdint.h>
 
 /*  Discovery definitions */
-/* 
- * ask how many ports this switch could have.  
- * Used to size an array of struct ports to represent 
- * all of the ports on this switch
- * Returns positive number of ports, or negative error code
- */
-int oom_maxports (void);
 
 /* 
  * list of valid port types
@@ -31,50 +24,13 @@ int oom_maxports (void);
  * note OOM_PORT_TYPE_NOT_PRESENT to indicate no 
  * module is present in this port
  */
-typedef enum oom_port_type_e {
-	OOM_PORT_TYPE_UNKNOWN = 0x00,
-	OOM_PORT_TYPE_GBIC = 0x01,
-	OOM_PORT_TYPE_SOLDERED = 0x02,
-	OOM_PORT_TYPE_SFP = 0x03,
-	OOM_PORT_TYPE_XBI = 0x04,
-	OOM_PORT_TYPE_XENPAK = 0x05,
-	OOM_PORT_TYPE_XFP = 0x06,
-	OOM_PORT_TYPE_XFF = 0x07,
-	OOM_PORT_TYPE_XFP_E = 0x08,
-	OOM_PORT_TYPE_XPAK = 0x09,
-	OOM_PORT_TYPE_X2 = 0x0A,
-	OOM_PORT_TYPE_DWDM_SFP = 0x0B,
-	OOM_PORT_TYPE_QSFP = 0x0C,
-	OOM_PORT_TYPE_QSFP_PLUS = 0x0D,
-	OOM_PORT_TYPE_CXP = 0x0E,
-	OOM_PORT_TYPE_SMM_HD_4X = 0x0F,
-	OOM_PORT_TYPE_SMM_HD_8X = 0x10,
-	OOM_PORT_TYPE_QSFP28 = 0x11,
-	OOM_PORT_TYPE_CXP2 = 0x12,
-	OOM_PORT_TYPE_CDFP = 0x13,
-	OOM_PORT_TYPE_SMM_HD_4X_FANOUT = 0x14,
-	OOM_PORT_TYPE_SMM_HD_8X_FANOUT = 0x15,
-	OOM_PORT_TYPE_CDFP_STYLE_3 = 0x16,
-	OOM_PORT_TYPE_MICRO_QSFP = 0x17,
 
-/* next values are CFP types. Note that their spec 
- * (CFP MSA Management Interface Specification ver 2.4 r06b page 67) 
- * values overlap with the values for i2c type devices.  OOM has 
- * chosen to add 256 (0x100) to the values to make them unique */
+typedef enum oom_port_class_e {
+	OOM_PORT_CLASS_UNKNOWN = 0x00,
+	OOM_PORT_CLASS_SFF = 0x01,
+	OOM_PORT_CLASS_CFP = 0x02,
+} oom_port_class_t;
 
-	OOM_PORT_TYPE_CFP = 0x10E,
-	OOM_PORT_TYPE_168_PIN_5X7 = 0x110,
-	OOM_PORT_TYPE_CFP2 = 0x111,
-	OOM_PORT_TYPE_CFP4 = 0x112,
-	OOM_PORT_TYPE_168_PIN_4X5 = 0x113,
-	OOM_PORT_TYPE_CFP2_ACO = 0x114,
-
-/* special values to indicate that no module is in this port, 
- * as well as invalid type */
-
-	OOM_PORT_TYPE_INVALID = -1,
-	OOM_PORT_TYPE_NOT_PRESENT = -2,
-} oom_port_type_t;
 
 /* Define the elements of a port
  * Note: seq_num is an implementation defined magic 
@@ -87,29 +43,37 @@ typedef enum oom_port_type_e {
  * decode layer or above
  */
 typedef struct oom_port_s {
-	int port_num;
-	oom_port_type_t port_type;
-	int seq_num; 
-	uint32_t port_flags;
+	void *handle;     /* opaque handle for this port */
+	oom_port_class_t oom_class;  /* class is SFF or CFP */
+	char name[32];  /* 32 bytes for a human readable name */ 
 } oom_port_t;
+
 
 /*
  * get the list of available ports, as an array 
- * of oom_port_t structs
- * returns the number of ports, or negative error code
- * note the underlying implementation must fill 
- * in all of the fields
- * of each oom_port struct
+ * of oom_port_t structs.  'listsize' indicates the
+ * number of ports that will fit in the portlist[] array.
+ *
+ * If there are listsize or fewer ports, and the portlist[]
+ * array is new or out of date, then the shim populates
+ * the portlist structure, and returns 0 (success).
+ *
+ * If the portlist structure is already current, then the 
+ * shim does not modify portlist[], and returns 1 (no change).
+ * This is intended as a way to poll for changes to the ports 
+ * (eg modules added, deleted, replaced, etc)
+ *
+ * If there are more than listize ports, the shim
+ * returns -ENOMEM, to indicate that a larger portlist[]
+ * array is required.
+ *
+ * If called as oom_get_portlist(NULL, 0), then the shim will
+ * return the number of ports, ie the minimum value of listsize.  Note
+ * that some implementations can dynamically add ports, so the return
+ * value is a very good hint, but not a guarantee as to the required
+ * size of the portlist[] structure.
  */
-int oom_get_portlist(oom_port_t portlist[]);
-
-/*
- * get just one port.  <n> is the port number of the requested port
- * return the port in the structure pointed to by 'port'
- * THIS IS NEW to the southbound API as of Jan 28, 2016
- */
-
-int oom_get_port(int n, oom_port_t* port); 
+int oom_get_portlist(oom_port_t portlist[], int listsize);
 
 
 /* Read/write control "PINS" function definitions */
@@ -186,7 +150,7 @@ int oom_set_function(oom_port_t* port, oom_functions_t function, int value);
  * returns: the number of bytes read, or a 
  *   negative error code
  */
-int oom_get_memoryraw(oom_port_t* port, int address, int page, int offset, int len, uint8_t* data);
+int oom_get_memory_sff(oom_port_t* port, int address, int page, int offset, int len, uint8_t* data);
 
 
 /* 
@@ -227,7 +191,7 @@ int oom_get_memoryraw(oom_port_t* port, int address, int page, int offset, int l
  * returns: the number of bytes written, or a 
  *   negative error code
  */
-int oom_set_memoryraw(oom_port_t* port, int address, int page, int offset, int len, uint8_t* data);
+int oom_set_memory_sff(oom_port_t* port, int address, int page, int offset, int len, uint8_t* data);
 
 /* 
  * read 16 bit oriented EEPROM
@@ -245,7 +209,7 @@ int oom_set_memoryraw(oom_port_t* port, int address, int page, int offset, int l
  * data: receives the memory contents
  * returns the number of words read, or a negative error code
  */
-int oom_get_memoryraw16(oom_port_t* port, int address, int len, uint16_t* data);
+int oom_get_memory_cfp(oom_port_t* port, int address, int len, uint16_t* data);
 
 /* 
  * write 16 bit oriented EEPROM
@@ -263,4 +227,4 @@ int oom_get_memoryraw16(oom_port_t* port, int address, int len, uint16_t* data);
  * data: data to be written to memory
  * returns the number of words written, or a negative error code
  */
-int oom_set_memoryraw16(oom_port_t* port, int address, int len, uint16_t* data);
+int oom_set_memory_cfp(oom_port_t* port, int address, int len, uint16_t* data);

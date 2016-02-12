@@ -1,10 +1,10 @@
-/* 
+/*
  * Southbound API mock for OOM
  * Uses Finisar "eep" files to provide data
  * Place an eep file in the "./module_data/<n>" to
  * provide simulation data for port <n>
  * Currently limited to 4 ports (implementation hack for simplicity)
- * */
+ */
 
 #include <stdio.h>
 #include <errno.h>
@@ -12,7 +12,7 @@
 #include <string.h>
 #include "oom_south.h"
 
-#define MAXPORTS 4
+#define MAXPORTS 6
 
 /* pointers to the data, per port */
 /* memory will be allocated as needed for actual data */
@@ -42,25 +42,6 @@ int oom_maxports(void) {
 }
 
 
-/*
- * get one port.  Allocate all the ports if necessary, 
- * then get the requested port, return it in the pointer to port
- */
-int oom_get_port(int n, oom_port_t* port)
-{
-	oom_port_t* portlist;
-	if (initialized == 0) {  /* build global port_array */
-		portlist = malloc(sizeof(port_array));
-		oom_get_portlist(portlist);
-		free(portlist);
-	}
-	port->port_num = port_array[n].port_num;
-	port->port_type = port_array[n].port_type;
-	port->seq_num = port_array[n].seq_num;
-	port->port_flags = port_array[n].port_flags;
-	return(n);
-}
-
 /* oom_get_portlist - build 4 ports:
  * 0 - SFP
  * 1 - QSFP+
@@ -68,109 +49,224 @@ int oom_get_port(int n, oom_port_t* port)
  * 3 - CFP
  * Port 0, 1, 3 have sequence numbers
  */
-int oom_get_portlist(oom_port_t portlist[]) 
+int oom_get_portlist(oom_port_t portlist[], int listsize) 
 {
 
 	char fname[18]; 
 	oom_port_t* pptr;
 	uint8_t* A0_data;
-	int i, j, k, stopit;
+	long port, stopit, dummy;
 	FILE* fp;
-	char inbuf[80];
-	char* retval;
 	size_t retcount;
 
 	if (initialized == 0) {
-		i = oom_maxports();  /* allocate memory for all ports */
+		dummy = oom_maxports();  /* allocate memory for all ports */
 	}
+	if ((portlist == NULL) && (listsize == 0)) {  /* asking # of ports */
+		return(MAXPORTS);
+	}
+	if (listsize < MAXPORTS) {   /* not enough room */
+		return(-ENOMEM);
+	}
+		
 
 	/* go ahead and reread the data files even if already initialized */
-	for (i = 0; i< MAXPORTS; i++) {
+	for (port = 0; port< MAXPORTS; port++) {
 		stopit = 0;
-		pptr = &portlist[i];
-		pptr->port_num = i;
-		pptr->seq_num = 0;
-		pptr->port_flags = i*4;  /* different for each port */
+		pptr = &portlist[port];
+		pptr->handle = (void *) port;
+		pptr->oom_class = OOM_PORT_CLASS_SFF;
+		sprintf(pptr->name, "port%d\0", port);
 
 		/* Open, read, interpret the A0 data file */
-		sprintf(fname, "./module_data/%d.A0", i);
+		sprintf(fname, "./module_data/%d.A0", port);
 		fp = fopen(fname, "r");
 		if (fp == NULL) {
-			pptr->port_type = OOM_PORT_TYPE_NOT_PRESENT;
-			/* printf("module %d is not present (%s)\n", i, fname); */
+			pptr->oom_class = OOM_PORT_CLASS_UNKNOWN;
+			printf("module %d is not present (%s)\n", port, fname);
 			/* perror("errno:"); */
 			stopit = 1;
 		} 
-		if (!stopit) {
-			A0_data = port_i2c_data[i] + 0xA0*256;
-			retcount = fread(A0_data, sizeof(uint8_t), 128, fp);
-			if (retcount != 128) {
-				printf("%s is not a module data file\n", fname);
-				pptr->port_type=OOM_PORT_TYPE_INVALID;
-				stopit = 1;
-			} else {
-				pptr->port_type = *A0_data;  /* first byte is type */
-				/*
-				printf("Port %d type: %d\n", i, pptr->port_type); 
-				*/
-			}
-
+		if (stopit == 0) {
+		    A0_data = port_i2c_data[port] + 0xA0*256;
+		    retcount = fread(A0_data, sizeof(uint8_t), 1, fp);
+		    if (retcount != 1) {
+		        printf("%s is not a module data file(1)\n", fname);
+			pptr->oom_class = OOM_PORT_CLASS_UNKNOWN;
+		        stopit = 1;
+		    }
 		}
-
-		/* Open, read, interpret the A2/pages data file */
-		if (!stopit) {
-			sprintf(fname, "./module_data/%d.pages", i);
-			fp = fopen(fname, "r");
-			if (fp == NULL) {
-				pptr->port_type = OOM_PORT_TYPE_NOT_PRESENT;
-				/* 
-				printf("module %d is not present\n", i);
-				perror("errno:");
-				*/
-				stopit = 1;
-			} 
+		if (stopit == 0) {
+	            if (*A0_data == 3) {  /* first byte is type, 3 == SFP */
+			A0_data++;
+		        retcount = fread(A0_data, sizeof(uint8_t), 127, fp);
+			stopit = SFP_read_A2h(port, pptr)    ;
+	            } else if (*A0_data == 'E') {
+		         stopit = QSFP_plus_read(port, pptr, fp);
+	            }
+		    if (stopit != 0) {  /* problem somewhere in *read() */
+		        printf("%s is not a module data file(2)\n", fname);
+		        pptr->oom_class = OOM_PORT_CLASS_UNKNOWN;
+		    }
 		}
-		if (!stopit) {
-			retval = fgets(inbuf, 80, fp);
-			if ((retval == NULL) ||
-		    	    (strncmp(inbuf, ";FCC SETUP", 10) != 0)) {
-				printf("%s is not a module data file\n", fname);
-				pptr->port_type=OOM_PORT_TYPE_INVALID;
-				stopit = 1;
-			}
-		}
-
-		if (!stopit) {
-			/* skip the next 9 lines */
-			for (j = 0; j < 9; j++) {
-				retval = fgets(inbuf, 80, fp);
-			}
-
-			/* first block is A2 (lower) data */
-			readpage(fp, port_i2c_data[i] + 0xA2*256);
-
-			/* next 32 blocks are pages 0-31 */
-			/* for now, just read page 0 */
-
-			for (j = 0; j < 1; j++) {
-				stopit = readpage(fp, port_page_data[i] + j*128);
-			}
-		}
-		if (stopit == -1) {  /* problem somewhere in readpage() */
-			printf("%s is not a module data file\n", fname);
-			pptr->port_type=OOM_PORT_TYPE_INVALID;
-		}
+		/* copy this port into the global (permanent) port_array */
+		port_array[port] = portlist[port];
 	}
 	/* TODO - undo this kludge */
 	/* fake port 3 as a CFP port until file read ability shows up */
-	pptr->port_type=OOM_PORT_TYPE_CFP;
+	pptr = &portlist[3];
+	pptr->oom_class = OOM_PORT_CLASS_CFP;
 
-	/* copy the port_list into the global port_array */
-	for (i = 0; i < MAXPORTS; i++) {
-		port_array[i] = portlist[i];
+	return(0);   /* '0' indicates success filling portlist[] */
+}
+int QSFP_plus_read(int port, oom_port_t* pptr, FILE *fp)
+{
+	/* read QSFP Port data */
+	/* Using the already open A0 file pointer, should be pointing
+	 * at the second byte of the file, should be 7 lines of 
+	 * human text, followed by ASCII hex data for A0 and 4 pages
+	 */
+	int stopit;
+	int j;
+	char fname[18]; 
+	char* retval;
+	char inbuf[80];
+	uint8_t* A0_data;
+
+	/* get the REST of the first line, the 1st char has been read */
+	retval = fgets(inbuf, 80, fp);
+	if ((retval == NULL) ||
+	     (strncmp(inbuf, "EPROM Setup", 10) != 0)) {
+	  	 printf("%d.A0 is not a module data file(3)\n", port);
+		 pptr->oom_class = OOM_PORT_CLASS_UNKNOWN;
+		 stopit = 1;
+	}
+
+	if (stopit == 0) {
+		/* skip the next 6 lines */
+		for (j = 0; j < 6; j++) {
+			retval = fgets(inbuf, 80, fp);
+		}
+
+		/* first block is A0 (lower) data */
+		QSFP_readpage(fp, port_i2c_data[port] + 0xA0*256);
+
+		/* next 32 blocks are pages 0-31 */
+		/* for QSFP+, read 4 pages */
+
+		for (j = 0; j < 4; j++) {
+			stopit = QSFP_readpage(fp, port_page_data[port] + j*128);
+		}
+	}
+	if (stopit != 0) {  /* problem somewhere in readpage() */
+		printf("%s is not a module data file(4)\n", fname);
+		pptr->oom_class = OOM_PORT_CLASS_UNKNOWN;
 	}
 }
 
+int SFP_read_A2h(int port, oom_port_t* pptr)
+{
+	int stopit;
+	int j;
+	char fname[18]; 
+	FILE* fp;
+	char* retval;
+	char inbuf[80];
+
+	stopit = 0;
+	/* Open, read, interpret the A2/pages data file */
+	sprintf(fname, "./module_data/%d.pages", port);
+	fp = fopen(fname, "r");
+	if (fp == NULL) {
+		pptr->oom_class = OOM_PORT_CLASS_UNKNOWN;
+		/* 
+		printf("module %d is not present\n", i);
+		perror("errno:");
+		*/
+		stopit = 1;
+	} 
+	if (stopit == 0) {
+		retval = fgets(inbuf, 80, fp);
+		if ((retval == NULL) ||
+	    	    (strncmp(inbuf, ";FCC SETUP", 10) != 0)) {
+			printf("%s is not a module data file(5)\n", fname);
+			pptr->oom_class = OOM_PORT_CLASS_UNKNOWN;
+			stopit = 1;
+		}
+	}
+
+	if (stopit == 0) {
+		/* skip the next 9 lines */
+		for (j = 0; j < 9; j++) {
+			retval = fgets(inbuf, 80, fp);
+		}
+
+		/* first block is A2 (lower) data */
+		readpage(fp, port_i2c_data[port] + 0xA2*256);
+
+		/* next 32 blocks are pages 0-31 */
+		/* for now, just read page 0 */
+
+		for (j = 0; j < 1; j++) {
+			stopit = readpage(fp, port_page_data[port] + j*128);
+		}
+	}
+	if (stopit != 0) {  /* problem somewhere in readpage() */
+		printf("%s is not a module data file(6z)\n", fname);
+		pptr->oom_class = OOM_PORT_CLASS_UNKNOWN;
+	}
+	return(stopit);
+}
+
+/* 
+ * QSFP_readpage() reads 128 byte blocks out of the <n>.A0 file
+ * decodes the hex, and puts the result into buf, leaving
+ * the file pointer ready to read the next block
+ */
+
+int QSFP_readpage(FILE* fp, char* buf)
+{
+	char inbuf[80];
+	char* retval;
+	int i, j, k;
+	char chin;
+	uint8_t chout;
+	int chout_int;
+	char *bufptr;
+
+	bufptr = buf;
+	for (i = 0; i< 8; i++) {   /* read 8 lines of data */
+		retval = fgets(inbuf, 80, fp);
+		if (retval != inbuf) {
+			printf("badly formatted module data file\n");
+			return(1);
+		}
+
+		/* data looks like this:
+0030: 00 01 02 03 04 05 06 07 08 09 0A 0B 0C 0D 0E 0F
+          1         2         3         4         5
+01234567890123456789012345678901234567890123456789012
+		 *  4 char offset, 2 useless bytes
+		 *  then 16 bytes, as 2 hex chars, blank separating
+		 */
+		for (j = 6; j < 52; j += 3) {
+			chin = inbuf[j];
+			chout = (chin >= 'A') ? (10 + chin - 'A') : chin - '0';
+			chout *= 16;
+			chin = inbuf[j+1];
+			chout += (chin >= 'A') ? (10 + chin - 'A') : chin - '0';
+			*bufptr = chout;
+			chout_int = chout;
+			bufptr++;
+		}
+	
+	}
+	/* read 5 more lines of data, the spacers line between data blocks */
+	for (i = 0; i < 5; i++) {
+		retval = fgets(inbuf, 80, fp);
+	}
+	return(0);
+}
 /* 
  * readpage() reads 128 byte blocks out of the .eep file
  * decodes the hex, and puts the result into buf, leaving
@@ -197,10 +293,10 @@ int readpage(FILE* fp, char* buf)
 
 		/* data looks like this:
 		 
-.....0030: 00000000 0000FF01 23456748 29041100
+0030: 00000000 0000FF01 23456748 29041100
 0123456789012345678901234567890123456789012345
 
-		 *  5 blanks (dots here for readability), 4 char offset, 2 useless
+		 *  4 char offset, 2 useless bytes
 		 *  then 4 bytes, as 8 hex chars, a blank, and repeating
 		 */
 		for (j = 6; j < 35; j += 9) {
@@ -253,37 +349,23 @@ void *pmemcpy(void *dest, const void *src, size_t n)
 	memcpy(dest, src, n);
 }
 
-int oom_set_function(oom_port_t* port, oom_functions_t function, int value) 
-{
-	/* for this mock function, and it's "get" equivalent, store the function in the flags field */
-	
-	if (value != 0) value = 1;  /* either enabled or disabled */
-	port->port_flags = (value << function); /* set the bit to the supplied value */
-	return 0;
-}
 
-int oom_get_function(oom_port_t* port, oom_functions_t function, int* rv) 
-{
-	
-	*rv = port->port_flags >> function;
-	*rv &= 1;
-}
-
-int oom_set_memoryraw(oom_port_t* port, int address, int page, int offset, int len, uint8_t* data)
+int oom_set_memory_sff(oom_port_t* port, int address, int page, int offset, int len, uint8_t* data)
 {
 	int i, i2clen;
 	int pageoffset, pagelen;
 	uint8_t* i2cptr;
 	uint8_t* pageptr;
 	
+	long port_num = (long) port->handle;
 	/*
-	printf("SET: Port: %d, address: 0x%2X, page: %d, offset: %d, len: %d\n", port->port_num, 
+	printf("SET: Port: %d, address: 0x%2X, page: %d, offset: %d, len: %d\n", port_num, 
 		address, page, offset, len);
 	*/
 	
-	i2cptr = port_i2c_data[port->port_num];  /* get the data for this port */
+	i2cptr = port_i2c_data[port_num];  /* get the data for this port */
 	i2cptr += address*256;  /* select the data at the right i2c address */
-	pageptr = port_page_data[port->port_num];  /* point to page data for this port */
+	pageptr = port_page_data[port_num];  /* point to page data for this port */
 	pageptr += page*128; /* select the right page */
 	
 	i2clen = 0; /* assume skipping over i2c lower range */
@@ -311,29 +393,31 @@ int oom_set_memoryraw(oom_port_t* port, int address, int page, int offset, int l
 }
 
 
-int oom_get_memoryraw(oom_port_t* port, int address, int page, int offset, int len, uint8_t* data)
+int oom_get_memory_sff(oom_port_t* port, int address, int page, int offset, int len, uint8_t* data)
 {
 	int i;
 	uint8_t* i2cptr;
 
+	long port_num = (long) port->handle;
 	/* comment here to quiet the tracking of this call *
-	printf("GET: Port: %d, address: 0x%2X, page: %d, offset: %d, len: %d\n", port->port_num, 
+	printf("GET: Port: %d, address: 0x%2X, page: %d, offset: %d, len: %d\n", port_num, 
 		address, page, offset, len); 
 	 * catcher for comment above */
 	
-	i2cptr = port_i2c_data[port->port_num];  /* get the data for this port */
+	i2cptr = port_i2c_data[port_num];  /* get the data for this port */
 	i2cptr += address*256;  /* select the data at the right i2c address */
-	pmemcpy(&i2cptr[128], &port_page_data[port->port_num][page*128], 128); /* copy page into i2c */
+	pmemcpy(&i2cptr[128], &port_page_data[port_num][page*128], 128); /* copy page into i2c */
 
 	pmemcpy(data, &i2cptr[offset], len);  /* copy the requested data */
 	return(len);
 }
 
-int oom_set_memoryraw16(oom_port_t* port, int address, int len, uint16_t* data)
+int oom_set_memory_cfp(oom_port_t* port, int address, int len, uint16_t* data)
 {
 
-	printf("SET16: Port: %d, address: 0x%2X, len: %d\n", port->port_num, address, len);
-	if (port->port_type != OOM_PORT_TYPE_CFP) {
+	long port_num = (long) port->handle;
+	printf("SET16: Port: %d, address: 0x%2X, len: %d\n", port_num, address, len);
+	if (port->oom_class != OOM_PORT_CLASS_CFP) {
 		printf("Not a CFP port, not writing to memory\n");
 		return(-1);
 	}
@@ -343,16 +427,17 @@ int oom_set_memoryraw16(oom_port_t* port, int address, int len, uint16_t* data)
 		return(-1);
 	}
 
-	pmemcpy(&port_CFP_data[port->port_num][address], data, len*2);
+	pmemcpy(&port_CFP_data[port_num][address], data, len*2);
 
 	return(len);
 }
 
-int oom_get_memoryraw16(oom_port_t* port, int address, int len, uint16_t* data)
+int oom_get_memory_cfp(oom_port_t* port, int address, int len, uint16_t* data)
 {
 
-	printf("GET16: Port: %d, address: 0x%2X, len: %d\n", port->port_num, address, len);
-	if (port->port_type != OOM_PORT_TYPE_CFP) {
+	long port_num = (long) port->handle;
+	printf("GET16: Port: %d, address: 0x%2X, len: %d\n", port_num, address, len);
+	if (port->oom_class != OOM_PORT_CLASS_CFP) {
 		printf("Not a CFP port, not writing to memory\n");
 		return(-1);
 	}
@@ -362,7 +447,7 @@ int oom_get_memoryraw16(oom_port_t* port, int address, int len, uint16_t* data)
 		return(-1);
 	}
 
-	pmemcpy(data, &port_CFP_data[port->port_num][address], len*2);	
+	pmemcpy(data, &port_CFP_data[port_num][address], len*2);	
 
 	return(len);
 }
