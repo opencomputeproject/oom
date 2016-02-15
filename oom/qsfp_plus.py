@@ -280,3 +280,11 @@ FM = {
                  'RX4_POWER',
                  )
     }
+
+
+WMAP = {
+        'TX4_DISABLE': 'set_bit3',
+        'TX3_DISABLE': 'set_bit2',
+        'TX2_DISABLE': 'set_bit1',
+        'TX1_DISABLE': 'set_bit0',
+       }

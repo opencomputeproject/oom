@@ -11,7 +11,8 @@ import qsfp
 import decode
 import oomlib
 
-import glob, os
+import glob
+import os
 import struct
 import time
 from ctypes import *
@@ -22,7 +23,8 @@ from array import *
 # get the number of ports, in order to size the port array...
 # get the port list
 
-def getport(portnum) :
+
+def getport(portnum):
 
     oomlib = cdll.LoadLibrary("./lib/oom_south.so")
 
@@ -37,4 +39,3 @@ def getport(portnum) :
     port_list = port_array()
     portlist_num = oomlib.oom_get_portlist(port_list)
     return port_list[portnum]
-

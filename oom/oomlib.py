@@ -127,23 +127,23 @@ def oom_set_memory_sff(port, address, page, offset, length, data):
     return retlen
 
 
-#
 # set the chosen key to the specified value
-#
 def oom_set_keyvalue(port, key, value):
-    # kludge implementation for now, just to demo northbound API
-    # basically, only one key is implemented!
-    if key == 'SOFT_TX_DISABLE_SELECT':
-        byte110 = oom_get_memory_sff(port, 0xA2, 0, 110, 1)
-        # legal values are interpreted as 0 and not 0
-        temp = ord(byte110[0])
-        if value == 0:
-            temp = clear_bit(temp, 6)
-        else:
-            temp = set_bit(temp, 6)
-        byte110[0] = chr(temp)
-        length = oom_set_memory_sff(port, 0xA2, 0, 110, 1, byte110[0])
-    return length                           # and return it
+    wmap = getwmap(port.port_type)  # need encoders
+    mm = getmm(port.port_type)      # reuse read parameters for writes
+    if key not in wmap:
+        return -1
+    if key not in mm:
+        return -1
+    par = (port,) + mm[key][1:]     # get the read parameters
+    raw_data = oom_get_memory_sff(*par)    # get the current data
+    encoder = getattr(decodelib, wmap[key])  # find the encoder
+    temp = encoder(raw_data, value)  # stuff value into raw_data if necessary
+    # wpar = (par,) + temp
+    # retval = oom_set_memory_sff(*wpar)    # and write it back!
+    retval = oom_set_memory_sff(port, mm[key][1], mm[key][2], mm[key][3],
+                                mm[key][4], temp)
+    return retval
 
 
 #
@@ -238,6 +238,24 @@ def getfm(type):
         if fmbytype[1] == []:
             fmbytype[1] = qsfp_plus.FM
         return(fmbytype[1])
+    return []
+
+
+#
+# get the mapping for writable keys, IDs the decoder
+#
+wmapbytype = [sfp.WMAP, qsfp_plus.WMAP]
+
+
+def getwmap(type):
+    if type == port_type_e['SFP']:
+        if wmapbytype[0] == []:
+            wmapbytype[0] = sfp.WMAP
+        return(wmapbytype[0])
+    if type == port_type_e['QSFP_PLUS']:
+        if wmapbytype[1] == []:
+            wmapbytype[1] = qsfp_plus.WMAP
+        return(wmapbytype[1])
     return []
 
 

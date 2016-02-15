@@ -12,7 +12,7 @@
 # ////////////////////////////////////////////////////////////////////
 
 from oom import *                   # the published OOM Northbound API
-from oomlib import getmm, getfm     # oom internals to get the key lists
+from oomlib import getmm, getfm, getwmap  # oom internals to get the key lists
 from decode import hexstr           # helper function from the decode pack
 
 
@@ -47,3 +47,13 @@ for keyx in fnkeys:
     print keyx + ': '
     print str(val)
     print
+
+# get the writable keys, for each, read the current value, write it back
+print ' '
+print 'writable keys, with before and after values (should match)'
+wmapkeys = getwmap(port.port_type)
+for keyx in sorted(wmapkeys):
+    val = oom_get_keyvalue(port, keyx)
+    retval = oom_set_keyvalue(port, keyx, val)
+    newval = oom_get_keyvalue(port, keyx)
+    print keyx + ': ' + str(val) + ',' + str(newval)
