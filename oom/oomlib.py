@@ -54,6 +54,8 @@ class port:
     def __init__(self):
         self.ptype = 3   # hack, make this an SFP port for now
 
+    # c_port is the c_port_t data structure returned 
+    # by the southbound API
     def add_c_port(self, c_port):
         self.c_port = c_port
         self.port_name = ''
@@ -63,6 +65,19 @@ class port:
     def add_port_type(self, port_type):
         self.port_type = port_type
 
+        # initialize the key maps, potentially unique for each port
+        for tname, ptype in port_type_e.iteritems():
+            if ptype == port_type:
+                typename = tname.lower()
+        try:
+            maps = importlib.import_module(typename, package=None)
+            self.mmap = maps.MM
+            self.fmap = maps.FM
+            self.wmap = maps.WMAP
+        except ImportError:
+            self.mmap = []
+            self.fmap = []
+            self.wmap = []
 
 #
 # oom_get_port(n): helper routine, provides a port without requiring the prior
@@ -129,15 +144,15 @@ def oom_set_memory_sff(port, address, page, offset, length, data):
 
 # set the chosen key to the specified value
 def oom_set_keyvalue(port, key, value):
-    wmap = getwmap(port.port_type)  # need encoders
-    mm = getmm(port.port_type)      # reuse read parameters for writes
-    if key not in wmap:
-        return -1
+    mm = port.mmap
+    wm = port.wmap
     if key not in mm:
+        return -1
+    if key not in wm:
         return -1
     par = (port,) + mm[key][1:]     # get the read parameters
     raw_data = oom_get_memory_sff(*par)    # get the current data
-    encoder = getattr(decodelib, wmap[key])  # find the encoder
+    encoder = getattr(decodelib, wm[key])  # find the encoder
     temp = encoder(raw_data, value)  # stuff value into raw_data if necessary
     # wpar = (par,) + temp
     # retval = oom_set_memory_sff(*wpar)    # and write it back!
@@ -197,66 +212,6 @@ port_type_e = {
     'INVALID': -1,
     'NOT_PRESENT': -2,
     }
-
-
-#
-# Get the mapping, for each key, what is it's decoder, and where
-# in the EEPROM (address, page, offset, len) is the data
-# TODO:  Kludge here, want a way to map type to a memmap, on demand
-# like if (mmbytpe[type] == []: mmbytpe[type] = "type".MM
-# current implementation ties SFP and QSFP to the numbers '0' and '1'
-# Kludgy
-#
-# mmbytype = [[]*2]
-mmbytype = [sfp.MM, qsfp_plus.MM]
-
-
-def getmm(type):
-    if type == port_type_e['SFP']:
-        if mmbytype[0] == []:
-            mmbytype[0] = sfp.MM
-        return(mmbytype[0])
-    if type == port_type_e['QSFP_PLUS']:
-        if mmbytype[1] == []:
-            mmbytype[1] = qsfp_plus.MM
-        return(mmbytype[1])
-    return []
-
-
-#
-# get the mapping, which functions include which keys
-#
-fmbytype = [sfp.FM, qsfp_plus.FM]
-
-
-def getfm(type):
-    if type == port_type_e['SFP']:
-        if fmbytype[0] == []:
-            fmbytype[0] = sfp.FM
-        return(fmbytype[0])
-    if type == port_type_e['QSFP_PLUS']:
-        if fmbytype[1] == []:
-            fmbytype[1] = qsfp_plus.FM
-        return(fmbytype[1])
-    return []
-
-
-#
-# get the mapping for writable keys, IDs the decoder
-#
-wmapbytype = [sfp.WMAP, qsfp_plus.WMAP]
-
-
-def getwmap(type):
-    if type == port_type_e['SFP']:
-        if wmapbytype[0] == []:
-            wmapbytype[0] = sfp.WMAP
-        return(wmapbytype[0])
-    if type == port_type_e['QSFP_PLUS']:
-        if wmapbytype[1] == []:
-            wmapbytype[1] = qsfp_plus.WMAP
-        return(wmapbytype[1])
-    return []
 
 
 # helper function, print raw data, in hex

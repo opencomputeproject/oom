@@ -12,7 +12,6 @@
 # ////////////////////////////////////////////////////////////////////
 
 from oom import *                   # the published OOM Northbound API
-from oomlib import getmm, getfm, getwmap  # oom internals to get the key lists
 from decode import hexstr           # helper function from the decode pack
 
 
@@ -21,7 +20,7 @@ port = oom_get_port(0)
 
 # get the internal list of keys and decoders for this type of module
 # report their values for this port
-keymap = getmm(port.port_type)
+keymap = port.mmap
 for keyx in sorted(keymap.keys()):
     if len(keymap[keyx]) == 5:
         if keymap[keyx][0] == 'get_bytes':
@@ -35,7 +34,7 @@ for keyx in sorted(keymap.keys()):
 print ' '
 print 'functions, with their keys and values:'
 print ' '
-fnkeys = getfm(port.port_type)
+fnkeys = port.fmap
 for keyx in fnkeys:
     val = oom_get_memory(port, keyx)
     print keyx + ': '
@@ -46,7 +45,7 @@ for keyx in fnkeys:
 # get the writable keys, for each, read the current value, write it back
 print ' '
 print 'writable keys, with before and after values (should match)'
-wmapkeys = getwmap(port.port_type)
+wmapkeys = port.wmap
 for keyx in sorted(wmapkeys):
     val = oom_get_keyvalue(port, keyx)
     retval = oom_set_keyvalue(port, keyx, val)
