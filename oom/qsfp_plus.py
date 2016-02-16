@@ -201,9 +201,10 @@ MM = {                  # decoder, addr, page, offset,length
     'NEAR_END_IMPLEMENT': ('get_low_nibl', 0xA0, 0, 113, 1),
 
 
-    # Password Change Entry Area (119-122)
-    # password Entry Area (123-126)
-    # note: "Password entry bytes are write only", thus no read keys here
+    # Passwords
+    'PASSWORD_CHANGE':     ('get_int', 0xA0, 0, 119, 4),
+    'PASSWORD_ENTRY':      ('get_int', 0xA0, 0, 123, 4),
+
 
     # Page 0, Serial ID fields
     # Note, per the spec: Page 00h Byte 0 and Page 00h Byte 128 shall
@@ -287,4 +288,6 @@ WMAP = {
         'TX3_DISABLE': 'set_bit2',
         'TX2_DISABLE': 'set_bit1',
         'TX1_DISABLE': 'set_bit0',
+        'PASSWORD_CHANGE': 'set_int',
+        'PASSWORD_ENTRY': 'set_int',
        }
