@@ -54,7 +54,7 @@ class port:
     def __init__(self):
         self.ptype = 3   # hack, make this an SFP port for now
 
-    # c_port is the c_port_t data structure returned 
+    # c_port is the c_port_t data structure returned
     # by the southbound API
     def add_c_port(self, c_port):
         self.c_port = c_port
@@ -78,6 +78,7 @@ class port:
             self.mmap = []
             self.fmap = []
             self.wmap = []
+
 
 #
 # oom_get_port(n): helper routine, provides a port without requiring the prior
