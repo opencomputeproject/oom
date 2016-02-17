@@ -35,7 +35,7 @@ decodelib = importlib.import_module('decode')
 # and find any addons that should be incorporated
 modulist = glob.glob('./addons/*.py')
 addon_fns = []
-sys.path.insert(0,'./addons')   # required, to get them imported
+sys.path.insert(0, './addons')   # required, to get them imported
 for i in range(len(modulist)):
     modulist[i] = modulist[i].split('/')[2]
     modulist[i] = modulist[i][0:len(modulist[i])-3]
