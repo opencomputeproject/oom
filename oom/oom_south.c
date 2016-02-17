@@ -23,6 +23,11 @@ uint16_t* port_CFP_data[MAXPORTS];
 int initialized = 0;
 oom_port_t port_array[MAXPORTS];
 
+int readpage(FILE* fp, char* buf);
+int QSFP_readpage(FILE* fp, char* buf);
+int QSFP_plus_read(int port, oom_port_t* pptr, FILE *fp);
+int SFP_read_A2h(int port, oom_port_t* pptr);
+
 /* MOCKS */
 
 /* oom_maxports - returns 4 ports (always), like a 4 port switch */
@@ -55,7 +60,7 @@ int oom_get_portlist(oom_port_t portlist[], int listsize)
 	char fname[18]; 
 	oom_port_t* pptr;
 	uint8_t* A0_data;
-	long port, stopit, dummy;
+	int port, stopit, dummy;
 	FILE* fp;
 	size_t retcount;
 
@@ -74,9 +79,9 @@ int oom_get_portlist(oom_port_t portlist[], int listsize)
 	for (port = 0; port< MAXPORTS; port++) {
 		stopit = 0;
 		pptr = &portlist[port];
-		pptr->handle = (void *) port;
+		pptr->handle = (void *)(uintptr_t)port;
 		pptr->oom_class = OOM_PORT_CLASS_SFF;
-		sprintf(pptr->name, "port%d\0", port);
+		sprintf(pptr->name, "port%d", port);
 
 		/* Open, read, interpret the A0 data file */
 		sprintf(fname, "./module_data/%d.A0", port);
@@ -320,7 +325,7 @@ int readpage(FILE* fp, char* buf)
 	return(0);
 }
 
-print_block_hex(uint8_t* buf)
+void print_block_hex(uint8_t* buf)
 {
 	int j, k;
 	uint8_t* bufptr8;
@@ -415,7 +420,7 @@ int oom_get_memory_sff(oom_port_t* port, int address, int page, int offset, int 
 int oom_set_memory_cfp(oom_port_t* port, int address, int len, uint16_t* data)
 {
 
-	long port_num = (long) port->handle;
+	int port_num = (int)(uintptr_t)port->handle;
 	printf("SET16: Port: %d, address: 0x%2X, len: %d\n", port_num, address, len);
 	if (port->oom_class != OOM_PORT_CLASS_CFP) {
 		printf("Not a CFP port, not writing to memory\n");
@@ -435,7 +440,7 @@ int oom_set_memory_cfp(oom_port_t* port, int address, int len, uint16_t* data)
 int oom_get_memory_cfp(oom_port_t* port, int address, int len, uint16_t* data)
 {
 
-	long port_num = (long) port->handle;
+	int port_num = (int)(uintptr_t)port->handle;
 	printf("GET16: Port: %d, address: 0x%2X, len: %d\n", port_num, address, len);
 	if (port->oom_class != OOM_PORT_CLASS_CFP) {
 		printf("Not a CFP port, not writing to memory\n");

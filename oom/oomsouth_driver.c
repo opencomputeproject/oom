@@ -5,7 +5,9 @@
 #include <string.h>
 #include "oom_south.h"
 
-main() {
+extern void print_block_hex(uint8_t* buf);
+
+int main() {
 	
 	int portcount;
 	portcount = oom_get_portlist(NULL, 0);
@@ -21,7 +23,7 @@ main() {
 	int i;
 	for (i = 0; i < portcount; i++) {
 		printf("%6d%12d         %s\n",
-			portlist[i].handle,
+			(int)(uintptr_t)portlist[i].handle,
 			portlist[i].oom_class,
 			portlist[i].name
 			);
@@ -33,7 +35,7 @@ main() {
 	uint8_t* mockdata;
 	mockdata = malloc(128);
 	uint8_t* retdata = malloc(128);
-	printf("mockdata (addr): %d, retdata (addr): %d\n", mockdata, retdata);
+	printf("mockdata (addr): %p, retdata (addr): %p\n", mockdata, retdata);
 	for (i = 0; i<128; i++) mockdata[i] = i;
 
 	/* write 128 bytes of it to page 3 of port 1 */
@@ -53,7 +55,7 @@ main() {
 	/* mock up some 16 bit data*/
 	uint16_t* mockdata16 = malloc(512);  /* 512 bytes, 256 words */
 	uint16_t* retdata16 = malloc(512);
-	printf("mockdata16 (addr): %d, retdata16 (addr): %d\n", mockdata16, retdata16);
+	printf("mockdata16 (addr): %p, retdata16 (addr): %p\n", mockdata16, retdata16);
 	for (i = 0; i<256; i++) mockdata16[i] = 1000+i;
 	
 	errno = oom_set_memory_cfp(&portlist[3], 0x8A00, 256, mockdata16);
