@@ -19,6 +19,8 @@ import decode
 import struct
 from ctypes import *
 import importlib
+import glob
+import sys
 
 #
 # link in the southbound shim
@@ -30,6 +32,25 @@ oomsouth = cdll.LoadLibrary("./lib/oom_south.so")
 # one time setup, get the names of the decoders in the decode library
 decodelib = importlib.import_module('decode')
 
+# and find any addons that should be incorporated
+modulist = glob.glob('./addons/*.py')
+addon_fns = []
+sys.path.insert(0,'./addons')   # required, to get them imported
+for i in range(len(modulist)):
+    modulist[i] = modulist[i].split('/')[2]
+    modulist[i] = modulist[i][0:len(modulist[i])-3]
+    try:
+        addlib = importlib.import_module(modulist[i])
+    except ImportError:
+        # skip that one (it is not a module?)
+        pass
+    else:
+        try:
+            addon_fns.append(getattr(addlib, 'add_features'))
+        except:
+            # skip that one ('add_features' is not there?)
+            pass
+sys.path = sys.path[1:]  # put the search path back
 
 port_class_e = {
     'UNKNOWN': 0x00,
@@ -75,9 +96,11 @@ class port:
             self.fmap = maps.FM
             self.wmap = maps.WMAP
         except ImportError:
-            self.mmap = []
-            self.fmap = []
-            self.wmap = []
+            self.mmap = {}
+            self.fmap = {}
+            self.wmap = {}
+        for func in addon_fns:  # call all the addons to extend this port
+            func(self)
 
 
 #
