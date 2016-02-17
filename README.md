@@ -9,7 +9,23 @@ port of a switch.  In addition to key/value read access, the OOM
 project also supports key/value write to a limited number of EEPROM
 locations, and raw read/write access directly to EEPROM.
 
-NEWS:  February 11, 2016
+NEWS:  February 16, 2016
+
+   The Master branch has been updated with the latest work:
+     - Added table drive oom_set_keyvalue()
+     - Added write keys to sfp.py, qsfp_plus.py
+     - Added memory map, function map and write map (mmap, fmap, wmap)
+       to each (python) port at initialization (oom_get_portlist())
+     - Cleaned up mapping of module type to 'sfp.py', 'qsfp_plus.py'.
+       New decode types can just be added as new files to the package
+       without modifying code.
+     - Fixed linux build issues (thanks Dustin)
+     - Removed all the pesky DOS <cr> at the end of each line of
+       many files (thanks Dustin)
+     - I will continue to use the 'dev' branch for upcoming changes
+     - Old news and mundane stuff below is still accurate
+
+Old News: Feb 11
 
    Gravitational waves detected at LIGO. A big day for physics!
 
