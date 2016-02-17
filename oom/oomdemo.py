@@ -82,3 +82,24 @@ print_block_hex(oom_get_memory_sff(port, 0xA0, 0, 128, 128))
 print '*******************'
 print 'Serial ID keys (all from page 0)'
 print "SERIAL_ID: " + str(oom_get_memory(port, "SERIAL_ID"))
+
+# demo QSFP key write
+# TXn_DISABLE disables Tx on channel n
+print 'QSFP oom_set_memory(port, key, value) demo'
+print 'Current value of TX_DISABLE (one bit per ch, ch4 is high bit): ' + \
+        hex(oom_get_keyvalue(port, 'TX_DISABLE'))
+status = oom_set_keyvalue(port, 'TX4_DISABLE', 1)
+status = oom_set_keyvalue(port, 'TX2_DISABLE', 1)
+print 'New value of TX_DISABLE, disabled ch4, ch2: ' + \
+        hex(oom_get_keyvalue(port, 'TX_DISABLE'))
+status = oom_set_keyvalue(port, 'TX4_DISABLE', 0)
+status = oom_set_keyvalue(port, 'TX3_DISABLE', 1)
+status = oom_set_keyvalue(port, 'TX2_DISABLE', 0)
+status = oom_set_keyvalue(port, 'TX1_DISABLE', 1)
+print 'Newer value of TX_DISABLE, swapped all 4 channels: ' + \
+        hex(oom_get_keyvalue(port, 'TX_DISABLE'))
+status = oom_set_keyvalue(port, 'TX3_DISABLE', 0)
+status = oom_set_keyvalue(port, 'TX1_DISABLE', 0)
+print 'Re-enable all 4 ports: ' + \
+        hex(oom_get_keyvalue(port, 'TX_DISABLE'))
+print '*******************'

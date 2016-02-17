@@ -93,3 +93,8 @@ FM = {
     'DOM': ('TEMPERATURE', 'VCC', 'TX_BIAS', 'TX_POWER',
             'RX_POWER'),
     }
+
+
+WMAP = {
+         'SOFT_TX_DISABLE_SELECT': 'set_bit6',
+       }

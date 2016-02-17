@@ -10,7 +10,7 @@
 # ////////////////////////////////////////////////////////////////////
 
 import oomlib
-from oomlib import getmm, getfm, decodelib, print_block_hex
+from oomlib import decodelib, print_block_hex
 from decode import get_string
 
 
@@ -41,7 +41,7 @@ def oom_get_portlist():
 # for all return types
 #
 def oom_get_keyvalue(port, key):
-    mm = getmm(port.port_type)            # get the memory map for this type
+    mm = port.mmap
     if key not in mm:
         return ''
     par = (port,) + mm[key][1:]           # get the parameters
@@ -66,7 +66,7 @@ def oom_set_keyvalue(port, key, value):
 #
 def oom_get_memory(port, function):
 
-    funcmap = getfm(port.port_type)
+    funcmap = port.fmap
     retval = {}
     for keys in funcmap[function]:
         retval[keys] = oom_get_keyvalue(port, keys)
