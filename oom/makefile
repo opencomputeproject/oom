@@ -20,12 +20,12 @@ all: $(SRC) $(OBJ)
 	
 
 oomsouth_driver.exe: oomsouth_driver.c ./lib/oom_south.so makefile
-	gcc -c oomsouth_driver.c
+	gcc -Wall -c oomsouth_driver.c
 	gcc oomsouth_driver.o oom_south.o -o oomsouth_driver.exe
 
 ./lib/oom_south.so: oom_south.c oom_south.h makefile
 	mkdir -p ./lib
-	gcc -fPIC -c oom_south.c
+	gcc -Wall -fPIC -c oom_south.c
 	gcc -shared oom_south.o -o ./lib/oom_south.so
 
 clean:

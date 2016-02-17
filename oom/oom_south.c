@@ -3,7 +3,7 @@
  * Uses Finisar "eep" files to provide data
  * Place an eep file in the "./module_data/<n>" to
  * provide simulation data for port <n>
- * Currently limited to 4 ports (implementation hack for simplicity)
+ * Currently limited to 6 ports (implementation hack for simplicity)
  */
 
 #include <stdio.h>
@@ -23,15 +23,15 @@ uint16_t* port_CFP_data[MAXPORTS];
 int initialized = 0;
 oom_port_t port_array[MAXPORTS];
 
-int readpage(FILE* fp, char* buf);
-int QSFP_readpage(FILE* fp, char* buf);
+int readpage(FILE* fp, uint8_t* buf);
+int QSFP_readpage(FILE* fp, uint8_t* buf);
 int QSFP_plus_read(int port, oom_port_t* pptr, FILE *fp);
 int SFP_read_A2h(int port, oom_port_t* pptr);
 
 /* MOCKS */
 
-/* oom_maxports - returns 4 ports (always), like a 4 port switch */
-int oom_maxports(void) {
+/* oom_shiminit initializes the backing memory for the simulator shim */
+void oom_shiminit(void) {
     int i;
 
     if (initialized == 0) {   /* don't reallocate memory! */
@@ -43,11 +43,10 @@ int oom_maxports(void) {
         }
 	initialized = 1;
     }
-    return(MAXPORTS);
 }
 
 
-/* oom_get_portlist - build 4 ports:
+/* oom_get_portlist - build all ports:
  * 0 - SFP
  * 1 - QSFP+
  * 2 - empty
@@ -60,12 +59,12 @@ int oom_get_portlist(oom_port_t portlist[], int listsize)
 	char fname[18]; 
 	oom_port_t* pptr;
 	uint8_t* A0_data;
-	int port, stopit, dummy;
+	int port, stopit;
 	FILE* fp;
 	size_t retcount;
 
 	if (initialized == 0) {
-		dummy = oom_maxports();  /* allocate memory for all ports */
+		oom_shiminit();  /* allocate memory for all ports */
 	}
 	if ((portlist == NULL) && (listsize == 0)) {  /* asking # of ports */
 		return(MAXPORTS);
@@ -133,10 +132,8 @@ int QSFP_plus_read(int port, oom_port_t* pptr, FILE *fp)
 	 */
 	int stopit = 0;
 	int j;
-	char fname[18]; 
 	char* retval;
 	char inbuf[80];
-	uint8_t* A0_data;
 
 	/* get the REST of the first line, the 1st char has been read */
 	retval = fgets(inbuf, 80, fp);
@@ -167,6 +164,7 @@ int QSFP_plus_read(int port, oom_port_t* pptr, FILE *fp)
 		printf("Not a module data file(4)\n");
 		pptr->oom_class = OOM_PORT_CLASS_UNKNOWN;
 	}
+	return(stopit);
 }
 
 int SFP_read_A2h(int port, oom_port_t* pptr)
@@ -229,15 +227,14 @@ int SFP_read_A2h(int port, oom_port_t* pptr)
  * the file pointer ready to read the next block
  */
 
-int QSFP_readpage(FILE* fp, char* buf)
+int QSFP_readpage(FILE* fp, uint8_t* buf)
 {
 	char inbuf[80];
 	char* retval;
-	int i, j, k;
+	int i, j;
 	char chin;
 	uint8_t chout;
-	int chout_int;
-	char *bufptr;
+	uint8_t *bufptr;
 
 	bufptr = buf;
 	for (i = 0; i< 8; i++) {   /* read 8 lines of data */
@@ -261,7 +258,6 @@ int QSFP_readpage(FILE* fp, char* buf)
 			chin = inbuf[j+1];
 			chout += (chin >= 'A') ? (10 + chin - 'A') : chin - '0';
 			*bufptr = chout;
-			chout_int = chout;
 			bufptr++;
 		}
 	
@@ -278,15 +274,14 @@ int QSFP_readpage(FILE* fp, char* buf)
  * the file pointer ready to read the next block
  */
 
-int readpage(FILE* fp, char* buf)
+int readpage(FILE* fp, uint8_t* buf)
 {
 	char inbuf[80];
 	char* retval;
 	int i, j, k;
 	char chin;
 	uint8_t chout;
-	int chout_int;
-	char *bufptr;
+	uint8_t *bufptr;
 
 	bufptr = buf;
 	for (i = 0; i< 8; i++) {   /* read 8 lines of data */
@@ -312,7 +307,6 @@ int readpage(FILE* fp, char* buf)
 				chin = inbuf[k+1];
 				chout += (chin >= 'A') ? (10 + chin - 'A') : chin - '0';
 				*bufptr = chout;
-				chout_int = chout;
 				bufptr++;
 			}
 		}
@@ -348,7 +342,7 @@ void print_block_hex(uint8_t* buf)
 }
 
 /* intercept memcpy, print out parameters (uncomment the printf) */
-void *pmemcpy(void *dest, const void *src, size_t n)
+void pmemcpy(void *dest, const void *src, size_t n)
 {
 /*	printf("pmemcpy - dest: %d, src: %d, size: %d\n", dest, src, n); */
 	memcpy(dest, src, n);
@@ -357,7 +351,7 @@ void *pmemcpy(void *dest, const void *src, size_t n)
 
 int oom_set_memory_sff(oom_port_t* port, int address, int page, int offset, int len, uint8_t* data)
 {
-	int i, i2clen;
+	int i2clen;
 	int pageoffset, pagelen;
 	uint8_t* i2cptr;
 	uint8_t* pageptr;
@@ -400,7 +394,6 @@ int oom_set_memory_sff(oom_port_t* port, int address, int page, int offset, int 
 
 int oom_get_memory_sff(oom_port_t* port, int address, int page, int offset, int len, uint8_t* data)
 {
-	int i;
 	uint8_t* i2cptr;
 
 	long port_num = (long) port->handle;

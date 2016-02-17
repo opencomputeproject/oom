@@ -29,8 +29,6 @@ int main() {
 			);
 	}
 
-	int rv;
-
 	/* mock up some data */
 	uint8_t* mockdata;
 	mockdata = malloc(128);
