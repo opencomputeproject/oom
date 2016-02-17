@@ -131,7 +131,7 @@ int QSFP_plus_read(int port, oom_port_t* pptr, FILE *fp)
 	 * at the second byte of the file, should be 7 lines of 
 	 * human text, followed by ASCII hex data for A0 and 4 pages
 	 */
-	int stopit;
+	int stopit = 0;
 	int j;
 	char fname[18]; 
 	char* retval;
@@ -164,7 +164,7 @@ int QSFP_plus_read(int port, oom_port_t* pptr, FILE *fp)
 		}
 	}
 	if (stopit != 0) {  /* problem somewhere in readpage() */
-		printf("%s is not a module data file(4)\n", fname);
+		printf("Not a module data file(4)\n");
 		pptr->oom_class = OOM_PORT_CLASS_UNKNOWN;
 	}
 }
