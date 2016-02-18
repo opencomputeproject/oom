@@ -23,6 +23,14 @@ is appropriate for the features being added.  Other likely
 screens might include keys like VENDOR_NAME, VENDOR_PN, VENDOR_REV,
 REV_COMPLIANCE, etc.
 
+There is no architectural limit on the number of addon files that
+can be added to the addons directory.
+Multiple addons can be applied to each port.
+Different addons can be applied to different ports.
+Each addon decides whether to apply itself to each port, based
+on any characteristic it can determine about that module, and it
+can read all the keys, and all accessible EEPROM to decide.
+
 NOTE:  A possible future use of addons is to provide different
 or added keys to match different spec versions with different
 modules.  The base OOM keys might match 'rev 3' of 'the spec'.  An
