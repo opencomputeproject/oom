@@ -101,8 +101,8 @@ def get_signed_current(x):  # return in mA
 
 def get_string(x):  # copy the cbuffer into a string
     result = ''
-    for i in range(0, len(x)):
-        result += x[i]
+    for c in x:
+        result += c
     return result
 
 
