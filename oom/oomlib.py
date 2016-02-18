@@ -71,7 +71,7 @@ port_type_e = {
     'NOT_PRESENT': -2,
     }
 
-# Southbound API will report the 'class' of a module, basically 
+# Southbound API will report the 'class' of a module, basically
 # whether it uses i2c addresses, pages, and bytes (SFF) or
 # it uses mdio, a flat 16 bit address space, and words (CFP)
 port_class_e = {
@@ -101,12 +101,12 @@ for name in modnamelist:
     name = name.split('/')[2]
     name = name[0:len(name)-3]
     modulist.append(name)
-modnamelist = glob.glob('./addons/*.pyc') # obfuscated modules!
+modnamelist = glob.glob('./addons/*.pyc')  # obfuscated modules!
 for name in modnamelist:
     name = name.split('/')[2]
     name = name[0:len(name)-4]
     modulist.append(name)
-modulist = list(set(modulist)) # eliminate dups, eg: x.py and x.pyc
+modulist = list(set(modulist))  # eliminate dups, eg: x.py and x.pyc
 
 for module in modulist:
     try:
@@ -121,6 +121,7 @@ for module in modulist:
             # skip that one ('add_features' is not there?)
             pass
 sys.path = sys.path[1:]  # put the search path back
+
 
 #
 # This class recreates the port structure in the southbound API
@@ -234,7 +235,6 @@ def oom_set_keyvalue(port, key, value):
     retval = oom_set_memory_sff(port, mm[key][1], mm[key][2], mm[key][3],
                                 mm[key][4], temp)
     return retval
-
 
 
 # debug helper function, print raw data, in hex
