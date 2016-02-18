@@ -136,7 +136,6 @@ class c_port_t(Structure):
 # and the keymap for that port.
 class Port:
     def __init__(self, cport):
-        print 'Initializing port: ' + str(cport.handle)
         self.c_port = cport
 
         # copy the C character array into a more manageable python string
@@ -148,6 +147,7 @@ class Port:
         # initialize the key maps, potentially unique for each port
         typename = type_to_str(self.port_type).lower()
         try:
+            # here is where the type is tied to the keymap file
             maps = importlib.import_module(typename, package=None)
             self.mmap = maps.MM
             self.fmap = maps.FM
