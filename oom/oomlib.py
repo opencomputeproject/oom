@@ -142,9 +142,7 @@ class Port:
         self.c_port = cport
 
         # copy the C character array into a more manageable python string
-        self.port_name = ''
-        for i in range(32):
-            self.port_name += chr(cport.name[i])
+        self.port_name = bytearray(cport.name).rstrip('\0')
         self.port_type = get_port_type(self)
 
         # initialize the key maps, potentially unique for each port
