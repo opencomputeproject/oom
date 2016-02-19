@@ -17,8 +17,6 @@ all: $(SRC) $(OBJ)
 	cp MUQ1BZB_EEPROM_20160108_192514.txt module_data/2.A0
 	cp MUQ1BZB_FCCABY_20160108_192514.txt module_data/2.pages
 	cp qsfpdatafile.txt module_data/5.A0
-	
-
 
 oomsouth_driver.exe: oomsouth_driver.c oom_internal.o oom_south.o \
 	             ./lib/oom_south.so makefile
