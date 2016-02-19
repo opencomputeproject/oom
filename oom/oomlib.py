@@ -178,6 +178,11 @@ def oom_get_port(n):
 #
 def oom_get_portlist():
     numports = oomsouth.oom_get_portlist(0, 0)
+    if numports < 0:
+        raise RuntimeError("oom_get_portlist error: %d" % numports)
+    elif numports == 0:
+        return list()
+
     cport_array = c_port_t * numports
     cport_list = cport_array()
     retval = oomsouth.oom_get_portlist(cport_list, numports)
