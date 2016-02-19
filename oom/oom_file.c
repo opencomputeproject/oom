@@ -11,6 +11,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "oom_south.h"
+#include "oom_internal.h"
 
 #define MAXPORTS 6
 
@@ -317,28 +318,6 @@ int readpage(FILE* fp, uint8_t* buf)
 		retval = fgets(inbuf, 80, fp);
 	}
 	return(0);
-}
-
-void print_block_hex(uint8_t* buf)
-{
-	int j, k;
-	uint8_t* bufptr8;
-	uint32_t tempintchar;
-
-	bufptr8 = buf;
-	for (j = 0; j < 8; j++) {
-		printf("       " );
-		for (k = 0; k < 19; k++) {
-			if ((k % 5) == 4) {
-				printf(" ");
-			} else {
-				tempintchar = *bufptr8;
-				printf("%.2X", tempintchar);
-				bufptr8++;
-			}
-		}
-		printf("\n");
-	}
 }
 
 /* intercept memcpy, print out parameters (uncomment the printf) */

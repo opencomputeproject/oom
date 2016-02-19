@@ -12,30 +12,117 @@
 #
 # ////////////////////////////////////////////////////////////////////
 
-import sfp
-import qsfp_plus
-import decode
-
+import os
 import struct
 from ctypes import *
 import importlib
+import glob
+import sys
+
+
+#
+# Mapping of port_type numbers to user accessible names
+# This is a copy of a matching table in oom_south.h
+# Might be a problem keeping these in sync, but
+# these mappings are based on the relevant standards,
+# so they should be fairly stable
+#
+port_type_e = {
+    'UNKNOWN': 0x00,
+    'GBIC': 0x01,
+    'SOLDERED': 0x02,
+    'SFP': 0x03,
+    'XBI': 0x04,
+    'XENPAK': 0x05,
+    'XFP': 0x06,
+    'XFF': 0x07,
+    'XFP_E': 0x08,
+    'XPAK': 0x09,
+    'X2': 0x0A,
+    'DWDM_SFP': 0x0B,
+    'QSFP': 0x0C,
+    'QSFP_PLUS': 0x0D,
+    'CXP': 0x0E,
+    'SMM_HD_4X': 0x0F,
+    'SMM_HD_8X': 0x10,
+    'QSFP28': 0x11,
+    'CXP2': 0x12,
+    'CDFP': 0x13,
+    'SMM_HD_4X_FANOUT': 0x14,
+    'SMM_HD_8X_FANOUT': 0x15,
+    'CDFP_STYLE_3': 0x16,
+    'MICRO_QSFP': 0x17,
+
+    #  next values are CFP types. Note that their spec
+    #  (CFP MSA Management Interface Specification ver 2.4 r06b page 67)
+    #  values overlap with the values for i2c type devices.  OOM has
+    #  chosen to add 256 (0x100) to the values to make them unique
+
+    'CFP': 0x10E,
+    '168_PIN_5X7': 0x110,
+    'CFP2': 0x111,
+    'CFP4': 0x112,
+    '168_PIN_4X5': 0x113,
+    'CFP2_ACO': 0x114,
+
+    #  special values to indicate that no module is in this port,
+    #  as well as invalid type
+
+    'INVALID': -1,
+    'NOT_PRESENT': -2,
+    }
+
+# Southbound API will report the 'class' of a module, basically
+# whether it uses i2c addresses, pages, and bytes (SFF) or
+# it uses mdio, a flat 16 bit address space, and words (CFP)
+port_class_e = {
+    'UNKNOWN': 0x00,
+    'SFF': 0x01,
+    'CFP': 0x02
+    }
 
 #
 # link in the southbound shim
 # note this means the southbound shim MUST be installed in
 # this location (relative to this module, in lib, named oom_south.so)
 #
-oomsouth = cdll.LoadLibrary("./lib/oom_south.so")
+libdir = os.path.dirname(os.path.realpath(__file__))
+oomsouth = cdll.LoadLibrary(libdir + "/lib/oom_south.so")
 
 # one time setup, get the names of the decoders in the decode library
 decodelib = importlib.import_module('decode')
 
+# and find any addons that should be incorporated
+addon_fns = []
+sys.path.insert(0, './addons')   # required, to get them imported
 
-port_class_e = {
-    'UNKNOWN': 0x00,
-    'SFF': 0x01,
-    'CFP': 0x02
-    }
+# build a list of modules in the addons directory
+modulist = []
+modnamelist = glob.glob('./addons/*.py')
+for name in modnamelist:
+    name = name.split('/')[2]
+    name = name[0:len(name)-3]
+    modulist.append(name)
+modnamelist = glob.glob('./addons/*.pyc')  # obfuscated modules!
+for name in modnamelist:
+    name = name.split('/')[2]
+    name = name[0:len(name)-4]
+    modulist.append(name)
+modulist = list(set(modulist))  # eliminate dups, eg: x.py and x.pyc
+
+for module in modulist:
+    try:
+        addlib = importlib.import_module(module)
+    except:
+        # skip that one (it is not a module?)
+        pass
+    else:
+        try:
+            addon_fns.append(getattr(addlib, 'add_features'))
+        except:
+            # skip that one ('add_features' is not there?)
+            pass
+sys.path = sys.path[1:]  # put the search path back
 
 
 #
@@ -50,34 +137,28 @@ class c_port_t(Structure):
 # This class is the python port, which includes the C definition
 # of a port, plus other useful things, including the port type,
 # and the keymap for that port.
-class port:
-    def __init__(self):
-        self.ptype = 3   # hack, make this an SFP port for now
+class Port:
+    def __init__(self, cport):
+        self.c_port = cport
 
-    # c_port is the c_port_t data structure returned
-    # by the southbound API
-    def add_c_port(self, c_port):
-        self.c_port = c_port
-        self.port_name = ''
-        for i in range(32):
-            self.port_name += chr(c_port.name[i])
-
-    def add_port_type(self, port_type):
-        self.port_type = port_type
+        # copy the C character array into a more manageable python string
+        self.port_name = bytearray(cport.name).rstrip('\0')
+        self.port_type = get_port_type(self)
 
         # initialize the key maps, potentially unique for each port
-        for tname, ptype in port_type_e.iteritems():
-            if ptype == port_type:
-                typename = tname.lower()
+        typename = type_to_str(self.port_type).lower()
         try:
+            # here is where the type is tied to the keymap file
             maps = importlib.import_module(typename, package=None)
             self.mmap = maps.MM
             self.fmap = maps.FM
             self.wmap = maps.WMAP
         except ImportError:
-            self.mmap = []
-            self.fmap = []
-            self.wmap = []
+            self.mmap = {}
+            self.fmap = {}
+            self.wmap = {}
+        for func in addon_fns:  # call all the addons to extend this port
+            func(self)
 
 
 #
@@ -97,16 +178,15 @@ def oom_get_port(n):
 #
 def oom_get_portlist():
     numports = oomsouth.oom_get_portlist(0, 0)
+    if numports < 0:
+        raise RuntimeError("oom_get_portlist error: %d" % numports)
+    elif numports == 0:
+        return list()
+
     cport_array = c_port_t * numports
     cport_list = cport_array()
     retval = oomsouth.oom_get_portlist(cport_list, numports)
-    portcount = 0
-    portlist = [port() for cport in cport_list]
-    for cport in cport_list:
-        portlist[portcount].add_c_port(cport)
-        ptype = get_port_type(portlist[portcount])
-        portlist[portcount].add_port_type(ptype)
-        portcount += 1
+    portlist = [Port(cport) for cport in cport_list]
     return portlist
 
 
@@ -162,60 +242,7 @@ def oom_set_keyvalue(port, key, value):
     return retval
 
 
-#
-# Mapping of port_type numbers to user accessible names
-# This is a copy of a matching table in oom_south.h
-# Might be a problem keeping these in sync, but
-# these mappings are based on the relevant standards,
-# so they should be fairly stable
-#
-port_type_e = {
-    'UNKNOWN': 0x00,
-    'GBIC': 0x01,
-    'SOLDERED': 0x02,
-    'SFP': 0x03,
-    'XBI': 0x04,
-    'XENPAK': 0x05,
-    'XFP': 0x06,
-    'XFF': 0x07,
-    'XFP_E': 0x08,
-    'XPAK': 0x09,
-    'X2': 0x0A,
-    'DWDM_SFP': 0x0B,
-    'QSFP': 0x0C,
-    'QSFP_PLUS': 0x0D,
-    'CXP': 0x0E,
-    'SMM_HD_4X': 0x0F,
-    'SMM_HD_8X': 0x10,
-    'QSFP28': 0x11,
-    'CXP2': 0x12,
-    'CDFP': 0x13,
-    'SMM_HD_4X_FANOUT': 0x14,
-    'SMM_HD_8X_FANOUT': 0x15,
-    'CDFP_STYLE_3': 0x16,
-    'MICRO_QSFP': 0x17,
-
-    #  next values are CFP types. Note that their spec
-    #  (CFP MSA Management Interface Specification ver 2.4 r06b page 67)
-    #  values overlap with the values for i2c type devices.  OOM has
-    #  chosen to add 256 (0x100) to the values to make them unique
-
-    'CFP': 0x10E,
-    '168_PIN_5X7': 0x110,
-    'CFP2': 0x111,
-    'CFP4': 0x112,
-    '168_PIN_4X5': 0x113,
-    'CFP2_ACO': 0x114,
-
-    #  special values to indicate that no module is in this port,
-    #  as well as invalid type
-
-    'INVALID': -1,
-    'NOT_PRESENT': -2,
-    }
-
-
-# helper function, print raw data, in hex
+# debug helper function, print raw data, in hex
 def print_block_hex(data):
     dataptr = 0
     bytesleft = len(data)
@@ -241,10 +268,9 @@ def print_block_hex(data):
         print outstr
 
 
-# set or clear a bit, for writing one bit back to EEPROM
-def set_bit(value, bit):
-    return (value | (1 << bit))
-
-
-def clear_bit(value, bit):
-    return (value & ~(1 << bit))
+# helper routine to return module type as string (reverse port_type_e)
+def type_to_str(modtype):
+    for tname, mtype in port_type_e.iteritems():
+        if mtype == modtype:
+            return tname
+    return ''

@@ -8,9 +8,9 @@
 #
 # ////////////////////////////////////////////////////////////////////
 #
-# all of the functions of the OOM Northbound API are in oomlib
+# all of the functions of the OOM Northbound API are in oom
 # import all of them to expose the OOM Northbound API
 # other modules in the OOM package implement the decode features
 #
 
-from .oomlib import *
+from .oom import *
