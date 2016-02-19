@@ -68,6 +68,10 @@ def oom_get_memory(port, function):
 
     funcmap = port.fmap
     retval = {}
+
+    if function not in funcmap:
+        return None
+
     for keys in funcmap[function]:
         retval[keys] = oom_get_keyvalue(port, keys)
     return retval
