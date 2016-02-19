@@ -19,14 +19,20 @@ all: $(SRC) $(OBJ)
 	cp qsfpdatafile.txt module_data/5.A0
 	
 
-oomsouth_driver.exe: oomsouth_driver.c ./lib/oom_south.so makefile
-	gcc -Wall -c oomsouth_driver.c
-	gcc oomsouth_driver.o oom_south.o -o oomsouth_driver.exe
 
-./lib/oom_south.so: oom_south.c oom_south.h makefile
+oomsouth_driver.exe: oomsouth_driver.c oom_internal.o oom_south.o \
+	             ./lib/oom_south.so makefile
+	gcc -Wall -c oomsouth_driver.c
+	gcc oomsouth_driver.o oom_internal.o oom_south.o -o oomsouth_driver.exe
+
+oom_internal.o: oom_internal.c oom_internal.h
+	gcc -Wall -fPIC -c oom_internal.c
+
+./lib/oom_south.so: oom_south.c oom_internal.o oom_south.h \
+	            makefile
 	mkdir -p ./lib
 	gcc -Wall -fPIC -c oom_south.c
-	gcc -shared oom_south.o -o ./lib/oom_south.so
+	gcc -shared oom_internal.o oom_south.o -o ./lib/oom_south.so
 
 clean:
-	rm -rf oom_south.o ./lib/oom_south.so oomsouth_driver.exe module_data/*
+	rm -f oom_*.o ./lib/oom_south.so oomsouth_driver.exe module_data/*

@@ -4,8 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "oom_south.h"
-
-extern void print_block_hex(uint8_t* buf);
+#include "oom_internal.h"
 
 int main() {
 	
