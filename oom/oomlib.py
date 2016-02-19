@@ -12,6 +12,7 @@
 #
 # ////////////////////////////////////////////////////////////////////
 
+import os
 import struct
 from ctypes import *
 import importlib
@@ -85,7 +86,8 @@ port_class_e = {
 # note this means the southbound shim MUST be installed in
 # this location (relative to this module, in lib, named oom_south.so)
 #
-oomsouth = cdll.LoadLibrary("./lib/oom_south.so")
+libdir = os.path.dirname(os.path.realpath(__file__))
+oomsouth = cdll.LoadLibrary(libdir + "/lib/oom_south.so")
 
 # one time setup, get the names of the decoders in the decode library
 decodelib = importlib.import_module('decode')
