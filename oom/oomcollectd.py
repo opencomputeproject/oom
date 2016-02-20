@@ -25,31 +25,38 @@
 import oom
 import collectd
 
+
 class OOMValue(collectd.Values):
     def __init__(self, dtype, port, key, value):
         nkey = '%s-%s' % (key, port.port_name)
         collectd.Values.__init__(self, type=dtype, type_instance=nkey,
-                                 values=[ value ])
+                                 values=[value])
+
 
 class LaserBiasCurrent(OOMValue):
     def __init__(self, port, key, value):
         OOMValue.__init__(self, 'current', port, key, value)
 
+
 class ReceivePower(OOMValue):
     def __init__(self, port, key, value):
         OOMValue.__init__(self, 'power', port, key, value)
+
 
 class LaserOutputPower(OOMValue):
     def __init__(self, port, key, value):
         OOMValue.__init__(self, 'power', port, key, value)
 
+
 class SupplyVoltage(OOMValue):
     def __init__(self, port, key, value):
         OOMValue.__init__(self, 'voltage', port, key, value)
 
+
 class ModuleTemperature(OOMValue):
     def __init__(self, port, key, value):
         OOMValue.__init__(self, 'temperature', port, key, value)
+
 
 def read_callback(data=None):
     portlist = oom.oom_get_portlist()
@@ -64,7 +71,7 @@ def read_callback(data=None):
                 value = dom[key] / 1000.0
                 LaserOutputPower(port, key[:3].lower(), value).dispatch()
 
-        for key in ('TX1_BIAS' , 'TX2_BIAS' , 'TX3_BIAS' , 'TX4_BIAS' ):
+        for key in ('TX1_BIAS', 'TX2_BIAS', 'TX3_BIAS', 'TX4_BIAS'):
             if key in dom:
                 value = dom[key] / 1000.0
                 LaserBiasCurrent(port, key[:3].lower(), value).dispatch()
