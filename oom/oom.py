@@ -44,11 +44,12 @@ def oom_get_keyvalue(port, key):
     mm = port.mmap
     if key not in mm:
         return ''
-    par = (port,) + mm[key][1:]           # get the parameters
-    raw_data = oom_get_memory_sff(*par)    # get the data
+    par = (port,) + mm[key][1:5]              # get the location
+    raw_data = oom_get_memory_sff(*par)       # get the data
     decoder = getattr(decodelib, mm[key][0])  # get the decoder
-    temp = decoder(raw_data)              # get the value
-    return temp                           # and return it
+    par = mm[key][5:]                         # extra decoder parms
+    temp = decoder(raw_data, *par)            # get the value
+    return temp                               # and return it
 
 
 #

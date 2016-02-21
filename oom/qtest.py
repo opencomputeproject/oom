@@ -28,7 +28,7 @@ print_block_hex(oom_get_memory_sff(port, 0xA0, 0, 128, 128))
 keymap = port.mmap
 print str(len(keymap.keys())) + ' keys implemented'
 for keyx in sorted(keymap.keys()):
-    if len(keymap[keyx]) == 5:
+    if len(keymap[keyx]) >= 5:
         if keymap[keyx][0] == 'get_bytes':
             val = oom_get_keyvalue(port, keyx)
             print keyx + ': ' + hexstr(val)

@@ -231,10 +231,11 @@ def oom_set_keyvalue(port, key, value):
         return -1
     if key not in wm:
         return -1
-    par = (port,) + mm[key][1:]     # get the read parameters
+    par = (port,) + mm[key][1:5]     # get the read parameters
     raw_data = oom_get_memory_sff(*par)    # get the current data
     encoder = getattr(decodelib, wm[key])  # find the encoder
-    temp = encoder(raw_data, value)  # stuff value into raw_data if necessary
+    par = mm[key][5:]
+    temp = encoder(raw_data, value, *par)  # stuff value into raw_data
     # wpar = (par,) + temp
     # retval = oom_set_memory_sff(*wpar)    # and write it back!
     retval = oom_set_memory_sff(port, mm[key][1], mm[key][2], mm[key][3],

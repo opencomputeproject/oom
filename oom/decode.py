@@ -184,6 +184,20 @@ def get3_bit2(x):  # get bits 2, 1, 0
     return(temp)
 
 
+# from 'x', extract 'numbits', starting at 'offset' and going DOWN
+# high order is bit 7, low order is bit 0
+# so, get_bits(0b00110000, 5, 2) will return 0b11, ie 3
+def get_bits(x, offset, numbits):
+    if (len(x) != 1) or (offset > 7) or (offset < 0) or \
+            (numbits > 8) or (numbits < 1) or \
+            ((offset - numbits) < -1):
+        return
+    temp = ord(x[0])
+    temp = temp >> ((offset + 1) - numbits)
+    temp %= 2**numbits
+    return temp
+
+
 # return true if bit 'n' of 'x' is set
 def get_bit(x, n):
     temp = ord(x[0])
@@ -451,3 +465,28 @@ def set_bit6(current, new):
 
 def set_bit7(current, new):
     return set_bitn(current, new, 7)
+
+
+# insert the low order 'numbits' from 'new' into 'current',
+# starting at 'offset'.  This is the reverse
+# of get_bits(x, offset, numbits)
+# high order is bit 7, low order is bit 0
+def set_bits(current, new, offset, numbits):
+    if (len(current) != 1) or (offset > 7) or (offset < 0) or \
+            (numbits > 8) or (numbits < 1) or \
+            ((offset - numbits) < -1) or (new > 255):
+        return
+    temp = ord(current[0])
+
+    # Set the target bits to all 1s
+    mask = 0xFF >> 8 - numbits
+    mask = mask << ((offset + 1) - numbits)
+    temp = temp | mask
+
+    # line up the new bits to the right spot, stuff 'em in
+    temp = temp & (new << ((offset + 1) - numbits))
+
+    # package the result for oom_set_memory_sff
+    retval = create_string_buffer(1)
+    retval[0] = chr(temp)
+    return retval

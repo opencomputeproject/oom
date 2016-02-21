@@ -337,8 +337,8 @@ int oom_set_memory_sff(oom_port_t* port, int address, int page, int offset, int 
 	
 	long port_num = (long) port->handle;
 	/*
-	printf("SET: Port: %d, address: 0x%2X, page: %d, offset: %d, len: %d\n", port_num, 
-		address, page, offset, len);
+	printf("SET: Port: %ld, address: 0x%2X, page: %d, offset: %d, len: %d, data: %s\n", port_num, 
+		address, page, offset, len, data);
 	*/
 	
 	i2cptr = port_i2c_data[port_num];  /* get the data for this port */
