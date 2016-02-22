@@ -9,40 +9,40 @@ MM = {                  # decoder, addr, page, offset,length
     # ID and status bytes (0-2)
     'IDENTIFIER':       ('get_int', 0xA0, 0, 0, 1),
     'REV_COMPLIANCE':   ('get_int', 0xA0, 0, 1, 1),
-    'FLAT_MEM':         ('get_bit2', 0xA0, 0, 2, 1),
-    'INT_L':            ('get_bit1', 0xA0, 0, 2, 1),
-    'DATA_NOT_READY':   ('get_bit0', 0xA0, 0, 2, 1),
+    'FLAT_MEM':         ('get_bits', 0xA0, 0, 2, 1, 2, 1),
+    'INT_L':            ('get_bits', 0xA0, 0, 2, 1, 1, 1),
+    'DATA_NOT_READY':   ('get_bits', 0xA0, 0, 2, 1, 0, 1),
 
     # Interrupt Flags bytes (3-21)
-    'L_TX_RX_LOS':      ('get_bytes', 0xA0, 0, 3, 1),  # All 8 LOS bits
-    'L_TX4_LOS':        ('get_bit7', 0xA0, 0, 3, 1),
-    'L_TX3_LOS':        ('get_bit6', 0xA0, 0, 3, 1),
-    'L_TX2_LOS':        ('get_bit5', 0xA0, 0, 3, 1),
-    'L_TX1_LOS':        ('get_bit4', 0xA0, 0, 3, 1),
-    'L_RX4_LOS':        ('get_bit3', 0xA0, 0, 3, 1),
-    'L_RX3_LOS':        ('get_bit2', 0xA0, 0, 3, 1),
-    'L_RX2_LOS':        ('get_bit1', 0xA0, 0, 3, 1),
-    'L_RX1_LOS':        ('get_bit0', 0xA0, 0, 3, 1),
+    'L_TX_RX_LOS':      ('get_bits', 0xA0, 0, 3, 1, 7, 8),  # All 8 LOS bits
+    'L_TX4_LOS':        ('get_bits', 0xA0, 0, 3, 1, 7, 1),
+    'L_TX3_LOS':        ('get_bits', 0xA0, 0, 3, 1, 6, 1),
+    'L_TX2_LOS':        ('get_bits', 0xA0, 0, 3, 1, 5, 1),
+    'L_TX1_LOS':        ('get_bits', 0xA0, 0, 3, 1, 4, 1),
+    'L_RX4_LOS':        ('get_bits', 0xA0, 0, 3, 1, 3, 1),
+    'L_RX3_LOS':        ('get_bits', 0xA0, 0, 3, 1, 2, 1),
+    'L_RX2_LOS':        ('get_bits', 0xA0, 0, 3, 1, 1, 1),
+    'L_RX1_LOS':        ('get_bits', 0xA0, 0, 3, 1, 0, 1),
 
-    'L_TX_FAULT':       ('get_bytes', 0xA0, 0, 4, 1),  # all 8 Fault bits
-    'L_TX4_ADAPT_EQ_FAULT': ('get_bit7', 0xA0, 0, 4, 1),
-    'L_TX3_ADAPT_EQ_FAULT': ('get_bit6', 0xA0, 0, 4, 1),
-    'L_TX2_ADAPT_EQ_FAULT': ('get_bit5', 0xA0, 0, 4, 1),
-    'L_TX1_ADAPT_EQ_FAULT': ('get_bit4', 0xA0, 0, 4, 1),
-    'L_TX4_FAULT':      ('get_bit3', 0xA0, 0, 4, 1),
-    'L_TX3_FAULT':      ('get_bit2', 0xA0, 0, 4, 1),
-    'L_TX2_FAULT':      ('get_bit1', 0xA0, 0, 4, 1),
-    'L_TX1_FAULT':      ('get_bit0', 0xA0, 0, 4, 1),
+    'L_TX_FAULT':       ('get_bits', 0xA0, 0, 4, 1, 7, 8),  # all 8 Fault bits
+    'L_TX4_ADAPT_EQ_FAULT': ('get_bits', 0xA0, 0, 4, 1, 7, 1),
+    'L_TX3_ADAPT_EQ_FAULT': ('get_bits', 0xA0, 0, 4, 1, 6, 1),
+    'L_TX2_ADAPT_EQ_FAULT': ('get_bits', 0xA0, 0, 4, 1, 5, 1),
+    'L_TX1_ADAPT_EQ_FAULT': ('get_bits', 0xA0, 0, 4, 1, 4, 1),
+    'L_TX4_FAULT':      ('get_bits', 0xA0, 0, 4, 1, 3, 1),
+    'L_TX3_FAULT':      ('get_bits', 0xA0, 0, 4, 1, 2, 1),
+    'L_TX2_FAULT':      ('get_bits', 0xA0, 0, 4, 1, 1, 1),
+    'L_TX1_FAULT':      ('get_bits', 0xA0, 0, 4, 1, 0, 1),
 
-    'L_TX_RX_LOL':      ('get_bytes', 0xA0, 0, 5, 1),  # All 8 LOL bits
-    'L_TX4_LOL':        ('get_bit7', 0xA0, 0, 5, 1),   # Laugh Out Loud?
-    'L_TX3_LOL':        ('get_bit6', 0xA0, 0, 5, 1),
-    'L_TX2_LOL':        ('get_bit5', 0xA0, 0, 5, 1),
-    'L_TX1_LOL':        ('get_bit4', 0xA0, 0, 5, 1),
-    'L_RX4_LOL':        ('get_bit3', 0xA0, 0, 5, 1),
-    'L_RX3_LOL':        ('get_bit2', 0xA0, 0, 5, 1),
-    'L_RX2_LOL':        ('get_bit1', 0xA0, 0, 5, 1),
-    'L_RX1_LOL':        ('get_bit0', 0xA0, 0, 5, 1),
+    'L_TX_RX_LOL':      ('get_bits', 0xA0, 0, 5, 1, 7, 8),  # All 8 LOL bits
+    'L_TX4_LOL':        ('get_bits', 0xA0, 0, 5, 1, 7, 1),   # Laugh Out Loud?
+    'L_TX3_LOL':        ('get_bits', 0xA0, 0, 5, 1, 6, 1),
+    'L_TX2_LOL':        ('get_bits', 0xA0, 0, 5, 1, 5, 1),
+    'L_TX1_LOL':        ('get_bits', 0xA0, 0, 5, 1, 4, 1),
+    'L_RX4_LOL':        ('get_bits', 0xA0, 0, 5, 1, 3, 1),
+    'L_RX3_LOL':        ('get_bits', 0xA0, 0, 5, 1, 2, 1),
+    'L_RX2_LOL':        ('get_bits', 0xA0, 0, 5, 1, 1, 1),
+    'L_RX1_LOL':        ('get_bits', 0xA0, 0, 5, 1, 0, 1),
 
     'L_TEMP_ALARM_WARN':   ('get_high_nibl', 0xA0, 0, 6, 1),  # all 4 temps
     'L_TEMP_HIGH_ALARM':   ('get_bit7', 0xA0, 0, 6, 1),

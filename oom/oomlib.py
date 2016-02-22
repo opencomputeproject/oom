@@ -236,8 +236,6 @@ def oom_set_keyvalue(port, key, value):
     encoder = getattr(decodelib, wm[key])  # find the encoder
     par = mm[key][5:]
     temp = encoder(raw_data, value, *par)  # stuff value into raw_data
-    # wpar = (par,) + temp
-    # retval = oom_set_memory_sff(*wpar)    # and write it back!
     retval = oom_set_memory_sff(port, mm[key][1], mm[key][2], mm[key][3],
                                 mm[key][4], temp)
     return retval
