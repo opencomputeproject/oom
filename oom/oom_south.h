@@ -55,11 +55,12 @@ typedef struct oom_port_s {
  * number of ports that will fit in the portlist[] array.
  *
  * If there are listsize or fewer ports, and the portlist[]
- * array is new or out of date, then the shim populates
- * the portlist structure, and returns 0 (success).
+ * array is new or changed, then the shim populates
+ * the portlist structure, and returns the number of valid
+ * ports in the portlist (which may be less than listsize).
  *
  * If the portlist structure is already current, then the 
- * shim does not modify portlist[], and returns 1 (no change).
+ * shim does not modify portlist[], and returns 0 (no change).
  * This is intended as a way to poll for changes to the ports 
  * (eg modules added, deleted, replaced, etc)
  *
@@ -72,6 +73,10 @@ typedef struct oom_port_s {
  * that some implementations can dynamically add ports, so the return
  * value is a very good hint, but not a guarantee as to the required
  * size of the portlist[] structure.
+ *
+ * Thus:  a positive return value indicates the number of valid ports
+ *        a zero return value indicates no change to the portlist
+ *        a negative return value indicates an error
  */
 int oom_get_portlist(oom_port_t portlist[], int listsize);
 
