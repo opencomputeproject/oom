@@ -74,14 +74,16 @@ decode.py.
 # followed by:
 #   the routine (from decode.py) used to extract the key
 #   the location of the data: address, page, offset(byte), length (bytes)
+#   optionally, additional parameters for the decoder
+#       for example, get_bits takes the bit offset and number of bits
 # Note that writable keys take their location from port.mmap
 # so there can be no keys in new_wmap_keys that are not also
 # in new_mmap_keys
 #
 
 new_mmap_keys = {
-    'COOLED_TRANSMITTER':  ('get_bit2', 0xA0, 0, 147, 1),
-    'TUNABLE_TRANSMITTER': ('get_bit0', 0xA0, 0, 147, 1),
+    'COOLED_TRANSMITTER':  ('get_bits', 0xA0, 0, 147, 1, 2, 1),
+    'TUNABLE_TRANSMITTER': ('get_bits', 0xA0, 0, 147, 1, 0, 1),
     }
 
 # A new function key to group these together
@@ -101,8 +103,8 @@ new_fmap_keys = {
 #    - eg oom_set_keyvalue(port, 'COOLED_TRANSMITTER', 1)
 # would fail, probably silently
 new_wmap_keys = {
-    'COOLED_TRANSMITTER': 'set_bit2',
-    'TUNABLE_TRANSMITTER': 'set_bit0'
+    'COOLED_TRANSMITTER': 'set_bits',
+    'TUNABLE_TRANSMITTER': 'set_bits'
     }
 
 

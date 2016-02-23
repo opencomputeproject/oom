@@ -134,18 +134,6 @@ def get_intX10(x):
     return get_int(x)*10
 
 
-def get_high_nibl(x):
-    temp = ord(x[0])
-    temp &= 0xF0
-    return(temp)
-
-
-def get_low_nibl(x):
-    temp = ord(x[0])
-    temp &= 0x0F
-    return(temp)
-
-
 # return 2 bits
 
 def get2_bits(x, n):
@@ -196,46 +184,6 @@ def get_bits(x, offset, numbits):
     temp = temp >> ((offset + 1) - numbits)
     temp %= 2**numbits
     return temp
-
-
-# return true if bit 'n' of 'x' is set
-def get_bit(x, n):
-    temp = ord(x[0])
-    temp = temp >> n
-    temp %= 2
-    return(temp)
-
-
-def get_bit7(x):
-    return(get_bit(x, 7))
-
-
-def get_bit6(x):
-    return(get_bit(x, 6))
-
-
-def get_bit5(x):
-    return(get_bit(x, 5))
-
-
-def get_bit4(x):
-    return(get_bit(x, 4))
-
-
-def get_bit3(x):
-    return(get_bit(x, 3))
-
-
-def get_bit2(x):
-    return(get_bit(x, 2))
-
-
-def get_bit1(x):
-    return(get_bit(x, 1))
-
-
-def get_bit0(x):
-    return(get_bit(x, 0))
 
 
 def get_bitrate(x):         # returns nominal bit rate IN MB/s

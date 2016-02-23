@@ -48,15 +48,15 @@ MM = {
      'OPT_LASER_TEMP':   ('get_temperature', 0xA2, 0, 106, 2),
      'OPT_TEC':          ('get_signed_current', 0xA2, 0, 108, 2),
 
-     'STATUS_CONTROL':   ('get_bytes', 0xA2, 0, 110, 1),
-     'TX_DISABLE_STATE': ('get_bit7', 0xA2, 0, 110, 1),
-     'SOFT_TX_DISABLE_SELECT': ('get_bit6', 0xA2, 0, 110, 1),
-     'RS_1_STATE':       ('get_bit5', 0xA2, 0, 110, 1),
-     'RATE_SELECT_STATE': ('get_bit4', 0xA2, 0, 110, 1),
-     'SOFT_RATE_SELECT': ('get_bit3', 0xA2, 0, 110, 1),
-     'TX_FAULT_STATE':   ('get_bit2', 0xA2, 0, 110, 1),
-     'RX_LOS_STATE':     ('get_bit1', 0xA2, 0, 110, 1),
-     'DATA_READY_BAR_STATE': ('get_bit0', 0xA2, 0, 110, 1),
+     'STATUS_CONTROL':         ('get_bits', 0xA2, 0, 110, 1, 7, 8),
+     'TX_DISABLE_STATE':       ('get_bits', 0xA2, 0, 110, 1, 7, 1),
+     'SOFT_TX_DISABLE_SELECT': ('get_bits', 0xA2, 0, 110, 1, 6, 1),
+     'RS_1_STATE':             ('get_bits', 0xA2, 0, 110, 1, 5, 1),
+     'RATE_SELECT_STATE':      ('get_bits', 0xA2, 0, 110, 1, 4, 1),
+     'SOFT_RATE_SELECT':       ('get_bits', 0xA2, 0, 110, 1, 3, 1),
+     'TX_FAULT_STATE':         ('get_bits', 0xA2, 0, 110, 1, 2, 1),
+     'RX_LOS_STATE':           ('get_bits', 0xA2, 0, 110, 1, 1, 1),
+     'DATA_READY_BAR_STATE':   ('get_bits', 0xA2, 0, 110, 1, 0, 1),
     }
 
 FM = {
@@ -96,5 +96,5 @@ FM = {
 
 
 WMAP = {
-         'SOFT_TX_DISABLE_SELECT': 'set_bit6',
+         'SOFT_TX_DISABLE_SELECT': 'set_bits',
        }
