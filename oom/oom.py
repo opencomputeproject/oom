@@ -10,7 +10,7 @@
 # ////////////////////////////////////////////////////////////////////
 
 import oomlib
-from oomlib import decodelib, print_block_hex
+from oomlib import print_block_hex
 from decode import get_string
 
 
@@ -24,8 +24,8 @@ def oom_get_port(n):
 
 
 #
-# similarly, get the full list of ports, allocates the
-# memory, defines the data types, simple
+# get the full list of ports, allocates the
+# memory, defines the data types
 #
 def oom_get_portlist():
     port_list = oomlib.oom_get_portlist()
@@ -33,27 +33,19 @@ def oom_get_portlist():
 
 
 #
-# magic decoder - gets any attribute based on its key attribute
+# magic decoder - gets any attribute based on its key
 # if there is no decoder for the port type, or the key is not
-# listed in the memory map for that port type, then returns ''
+# listed in the memory map for that port type, then returns None
 # NOTE: the type of the value returned depends on the key.
 # Use 'str(oom_get_keyvalue(port, key))' to get a readable string
 # for all return types
 #
 def oom_get_keyvalue(port, key):
-    mm = port.mmap
-    if key not in mm:
-        return ''
-    par = (port,) + mm[key][1:5]              # get the location
-    raw_data = oom_get_memory_sff(*par)       # get the data
-    decoder = getattr(decodelib, mm[key][0])  # get the decoder
-    par = mm[key][5:]                         # extra decoder parms
-    temp = decoder(raw_data, *par)            # get the value
-    return temp                               # and return it
+    return oomlib.oom_get_keyvalue(port, key)
 
 
 #
-# Set a key to chosen value (write key to EEPROM)
+# Set a key to chosen value (write value to EEPROM)
 # Be careful with this, this is likely to change the function
 # of your module
 #
@@ -66,16 +58,7 @@ def oom_set_keyvalue(port, key, value):
 # keys in that function, on the specified port
 #
 def oom_get_memory(port, function):
-
-    funcmap = port.fmap
-    retval = {}
-
-    if function not in funcmap:
-        return None
-
-    for keys in funcmap[function]:
-        retval[keys] = oom_get_keyvalue(port, keys)
-    return retval
+    return oomlib.oom_get_memory(port, function)
 
 
 #

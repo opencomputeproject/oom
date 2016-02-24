@@ -223,6 +223,19 @@ def oom_set_memory_sff(port, address, page, offset, length, data):
     return retlen
 
 
+# for given port, return the value of the given key
+def oom_get_keyvalue(port, key):
+    mm = port.mmap
+    if key not in mm:
+        return ''
+    par = (port,) + mm[key][1:5]              # get the location
+    raw_data = oom_get_memory_sff(*par)       # get the data
+    decoder = getattr(decodelib, mm[key][0])  # get the decoder
+    par = mm[key][5:]                         # extra decoder parms
+    temp = decoder(raw_data, *par)            # get the value
+    return temp
+
+
 # set the chosen key to the specified value
 def oom_set_keyvalue(port, key, value):
     mm = port.mmap
@@ -238,6 +251,23 @@ def oom_set_keyvalue(port, key, value):
     temp = encoder(raw_data, value, *par)  # stuff value into raw_data
     retval = oom_set_memory_sff(port, mm[key][1], mm[key][2], mm[key][3],
                                 mm[key][4], temp)
+    return retval
+
+
+#
+# given a 'function', return a dictionary with the values of all the
+# keys in that function
+#
+def oom_get_memory(port, function):
+
+    funcmap = port.fmap
+    retval = {}
+
+    if function not in funcmap:
+        return None
+
+    for keys in funcmap[function]:
+        retval[keys] = oom_get_keyvalue(port, keys)
     return retval
 
 
