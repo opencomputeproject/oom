@@ -14,6 +14,20 @@ from oomlib import print_block_hex
 from decode import get_string
 
 
+"""
+The members of the port class are:
+    c_port: the C port structure returned by the Southbound API
+        (see oom_south.h)
+    port_name: The name of the port provided by the Southbound API
+    port_type: The type of the port, per the SFF specs.  For example:
+        SFP is type 3, QSFP+ is type 13
+    mmap: The dictionary of keys, decoders and locations for everything
+        OOM knows how to access in this port.  See qsfp_plus.py for
+        the list of QSFP+ keys, for example.
+    fmap: The list of keys that form function groups (for oom_get_memory())
+    wmap: The list of writable keys, and the encoder to pack the 
+        data to write for each key
+"""
 #
 # helper routine, provides a port without requiring the user to
 # define the complicated port_t struct
