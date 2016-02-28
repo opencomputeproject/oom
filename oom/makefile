@@ -1,8 +1,9 @@
 # make the C southbound library, organize the pieces
 
 # Select a shim
-SHIM=file
-#SHIM=ethtool
+# SHIM=file
+# SHIM=ethtool
+SHIM=aardvark
 
 SRC = oom_south.h oom_$(SHIM).c oomsouth_driver.c makefile sfp.py qsfp_plus.py \
       oomdemo.py decode.py oomlib.py \
@@ -25,16 +26,31 @@ all: $(SRC) $(OBJ)
 oomsouth_driver.exe: oomsouth_driver.c oom_internal.o oom_$(SHIM).o \
 	             ./lib/oom_south.so makefile
 	gcc -Wall -c oomsouth_driver.c
-	gcc oomsouth_driver.o oom_internal.o oom_$(SHIM).o -o oomsouth_driver.exe
+	mkdir -p ./lib
+ifeq ($(SHIM), aardvark)
+	gcc oomsouth_driver.o oom_internal.o oom_$(SHIM).o \
+		aardvark.o -o oomsouth_driver.exe
+else
+	gcc oomsouth_driver.o oom_internal.o oom_$(SHIM).o \
+		-o oomsouth_driver.exe
+endif
 
 oom_internal.o: oom_internal.c oom_internal.h
 	gcc -Wall -fPIC -c oom_internal.c
 
 ./lib/oom_south.so: oom_$(SHIM).c oom_internal.o oom_south.h \
 	            makefile
-	mkdir -p ./lib
 	gcc -Wall -fPIC -c oom_$(SHIM).c
-	gcc -shared oom_internal.o oom_$(SHIM).o -o ./lib/oom_south.so
+	mkdir -p ./lib
+ifeq ($(SHIM), aardvark)
+		cp -f aardvark.dll ./lib
+		gcc -Wall -c aardvark.c
+		gcc -shared oom_internal.o aardvark.o oom_$(SHIM).o \
+				-o ./lib/oom_south.so
+else
+		gcc -shared oom_internal.o oom_$(SHIM).o -o ./lib/oom_south.so
+endif
 
 clean:
-	rm -f oom_*.o ./lib/oom_south.so oomsouth_driver.exe module_data/*
+	rm -f oom_*.o ./lib/oom_south.so oomsouth_driver.exe module_data/* \
+		aardvark.o ./lib/aardvark.dll
