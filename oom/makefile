@@ -1,9 +1,9 @@
 # make the C southbound library, organize the pieces
 
 # Select a shim
-# SHIM=file
+SHIM=file
 # SHIM=ethtool
-SHIM=aardvark
+# SHIM=aardvark
 
 SRC = oom_south.h oom_$(SHIM).c oomsouth_driver.c makefile sfp.py qsfp_plus.py \
       oomdemo.py decode.py oomlib.py \
