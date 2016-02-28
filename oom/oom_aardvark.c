@@ -128,14 +128,6 @@ int _readMemory (Aardvark handle, u08 device, u08 addr, u16 length, uint8_t* dat
         printf("error: read %d bytes (expected %d)\n", count, length);
     }
 
-    // Dump the data to the screen
-    printf("\nData read from device:");
-    for (i = 0; i < count; ++i) {
-        if ((i&0x0f) == 0)      printf("\n%04x:  ", addr+i);
-        printf("%02x ", data[i] & 0xff);
-        if (((i+1)&0x07) == 0)  printf(" ");
-    }
-    printf("\n");
     return(count);
 }
 
@@ -161,11 +153,14 @@ int aa_read_write(oom_port_t* oomport, int rw, int oomaddr, \
 
     port    = (int)(uintptr_t)oomport->handle;
     bitrate = 150;
-    aa_device  = (u08)oomaddr;
+    /* note we shift the i2c address right one bit to match SFF spec
+     * with Aardvark addressing (lsb in SFF is included but not used */
+    aa_device  = (u08)oomaddr / 2;
     aa_addr    = (u08)offset;
     aa_length  = (u16) oomlength;
 
     // Open the aa_device
+    // printf ("opening port: %d\n", port);
     handle = aa_open(port);
     if (handle <= 0) {
         printf("Unable to open Aardvark device on port %d\n", port);
@@ -187,17 +182,17 @@ int aa_read_write(oom_port_t* oomport, int rw, int oomaddr, \
     aa_target_power(handle, AA_TARGET_POWER_BOTH);
 
     // Set the bitrate
-    bitrate = aa_i2c_bitrate(handle, bitrate);
-    printf("Bitrate set to %d kHz\n", bitrate);
+    aa_i2c_bitrate(handle, bitrate);
+    // printf("Bitrate set to %d kHz\n", bitrate);
 
     // Set the bus lock timeout
     bus_timeout = aa_i2c_bus_timeout(handle, BUS_TIMEOUT);
-    printf("Bus lock timeout set to %d ms\n", bus_timeout);
+    // printf("Bus lock timeout set to %d ms\n", bus_timeout);
 
     // Perform the operation: 1 is for write
     if (rw == WRITE) { 
         retval = _writeMemory(handle, aa_device, aa_addr, aa_length, data);
-        printf("Wrote to EEPROM\n");
+        // printf("Wrote to EEPROM\n");
     }
     else if (rw == READ) {   /* 0 is for read */
         retval = _readMemory(handle, aa_device, aa_addr, aa_length, data);
