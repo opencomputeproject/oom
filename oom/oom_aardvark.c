@@ -89,6 +89,11 @@ int _writeMemory (Aardvark handle, u08 device, u08 addr, u16 length,
 {
     u16 i;
     u08 data_out[1+length];
+    int retval;
+
+    // printf("aa_writeMemory, handle: %d, device: %x, addr: %d, 
+    //        length: %d, data[0]: %x\n", 
+    //        handle, device, addr, length, data[0]);
 
     // Write to the I2C EEPROM
     // Set the offset (addr) as the first byte
@@ -100,15 +105,15 @@ int _writeMemory (Aardvark handle, u08 device, u08 addr, u16 length,
     }
 
     // Write the address and data
-    aa_i2c_write(handle, device, AA_I2C_NO_FLAGS, length+1, data_out);
+    retval = aa_i2c_write(handle, device, AA_I2C_NO_FLAGS, length+1, data_out);
     aa_sleep_ms(10);
-    return(length);
+    return(retval);
 }
 
 
 int _readMemory (Aardvark handle, u08 device, u08 addr, u16 length, uint8_t* data)
 {
-    int count, i;
+    int count;
 
     // Write the address
     aa_i2c_write(handle, device, AA_I2C_NO_STOP, 1, &addr);
@@ -148,7 +153,7 @@ int aa_read_write(oom_port_t* oomport, int rw, int oomaddr, \
     u08 aa_device;
     u08 aa_addr;
     u16 aa_length;
-    int bus_timeout;
+    // int bus_timeout;
     int retval;
 
     port    = (int)(uintptr_t)oomport->handle;
@@ -186,10 +191,11 @@ int aa_read_write(oom_port_t* oomport, int rw, int oomaddr, \
     // printf("Bitrate set to %d kHz\n", bitrate);
 
     // Set the bus lock timeout
-    bus_timeout = aa_i2c_bus_timeout(handle, BUS_TIMEOUT);
+    aa_i2c_bus_timeout(handle, BUS_TIMEOUT);
+    // bus_timeout = aa_i2c_bus_timeout(handle, BUS_TIMEOUT);
     // printf("Bus lock timeout set to %d ms\n", bus_timeout);
 
-    // Perform the operation: 1 is for write
+    // Perform the operation
     if (rw == WRITE) { 
         retval = _writeMemory(handle, aa_device, aa_addr, aa_length, data);
         // printf("Wrote to EEPROM\n");
@@ -219,6 +225,15 @@ void pmemcpy(void *dest, const void *src, size_t n)
 int oom_set_memory_sff(oom_port_t* port, int address, int page, int offset, int len, uint8_t* data)
 {
 	int retval;
+
+	// set the page register if leaving lower 128 bytes
+	if ((offset + len) > 128) {
+		uint8_t pagebyte[1];
+		pagebyte[0] = (uint8_t) page;
+		retval = aa_read_write(port, WRITE, address, 127, 1, pagebyte);
+		if (retval != 1) return (retval);
+	}
+
 	retval = aa_read_write(port, WRITE, address, offset, len, data);
 	return(retval);
 }
@@ -227,6 +242,15 @@ int oom_set_memory_sff(oom_port_t* port, int address, int page, int offset, int 
 int oom_get_memory_sff(oom_port_t* port, int address, int page, int offset, int len, uint8_t* data)
 {
 	int retval;
+
+	// set the page register if leaving lower 128 bytes
+	if ((offset + len) > 128) {
+		uint8_t pagebyte[1];
+		pagebyte[0] = (uint8_t) page;
+		retval = aa_read_write(port, WRITE, address, 127, 1, pagebyte);
+		if (retval != 1) return (retval);
+	}
+
 	retval = aa_read_write(port, READ, address, offset, len, data);
 	return(retval);
 }
