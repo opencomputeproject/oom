@@ -91,9 +91,9 @@ int _writeMemory (Aardvark handle, u08 device, u08 addr, u16 length,
     u08 data_out[1+length];
     int retval;
 
-    // printf("aa_writeMemory, handle: %d, device: %x, addr: %d, 
-    //        length: %d, data[0]: %x\n", 
-    //        handle, device, addr, length, data[0]);
+    // printf("aa_writeMemory, handle: %d, device: %x, addr: %d,
+    //           length: %d, data[0]: %x\n",
+    //           handle, device, addr, length, data[0]);
 
     // Write to the I2C EEPROM
     // Set the offset (addr) as the first byte
@@ -170,7 +170,7 @@ int aa_read_write(oom_port_t* oomport, int rw, int oomaddr, \
     if (handle <= 0) {
         printf("Unable to open Aardvark device on port %d\n", port);
         printf("Error code = %d\n", handle);
-        return 1;
+        return -1;
     }
 
     // Ensure that the I2C subsystem is enabled
@@ -204,6 +204,10 @@ int aa_read_write(oom_port_t* oomport, int rw, int oomaddr, \
         retval = _readMemory(handle, aa_device, aa_addr, aa_length, data);
     }
 
+    //Aardvark routines add an extra byte for the address, 
+    //remove it from the return value (number of bytes  read/written)
+    retval --;   
+    
     // Close the device and exit
     aa_close(handle);
     return (retval);
@@ -219,20 +223,21 @@ void pmemcpy(void *dest, const void *src, size_t n)
 }
 
 
-// int aa_read_write(oom_port_t* oomport, int rw, int oomaddr, 
-//		int offset, int oomlength, uint8_t* data)
-//
 int oom_set_memory_sff(oom_port_t* port, int address, int page, int offset, int len, uint8_t* data)
 {
 	int retval;
 
 	// set the page register if leaving lower 128 bytes
+	/* */
 	if ((offset + len) > 128) {
 		uint8_t pagebyte[1];
 		pagebyte[0] = (uint8_t) page;
 		retval = aa_read_write(port, WRITE, address, 127, 1, pagebyte);
-		if (retval != 1) return (retval);
+		if (retval != 1) {
+			return (retval);
+		}
 	}
+	/* */
 
 	retval = aa_read_write(port, WRITE, address, offset, len, data);
 	return(retval);
@@ -244,12 +249,16 @@ int oom_get_memory_sff(oom_port_t* port, int address, int page, int offset, int 
 	int retval;
 
 	// set the page register if leaving lower 128 bytes
+	/* */
 	if ((offset + len) > 128) {
 		uint8_t pagebyte[1];
 		pagebyte[0] = (uint8_t) page;
 		retval = aa_read_write(port, WRITE, address, 127, 1, pagebyte);
-		if (retval != 1) return (retval);
+		if (retval != 1) {
+			return (retval);
+		}
 	}
+	/* */
 
 	retval = aa_read_write(port, READ, address, offset, len, data);
 	return(retval);
