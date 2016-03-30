@@ -82,8 +82,8 @@ decode.py.
 #
 
 new_mmap_keys = {
-    'COOLED_TRANSMITTER':  ('get_bits', 0xA0, 0, 147, 1, 2, 1),
-    'TUNABLE_TRANSMITTER': ('get_bits', 0xA0, 0, 147, 1, 0, 1),
+    'COOLED_TRANSMITTER':  (0, 'get_bits', 0xA0, 0, 147, 1, 2, 1),
+    'TUNABLE_TRANSMITTER': (0, 'get_bits', 0xA0, 0, 147, 1, 0, 1),
     }
 
 # A new function key to group these together

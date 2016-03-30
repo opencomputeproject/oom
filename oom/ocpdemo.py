@@ -59,8 +59,8 @@ try:
                 temp = (pcycle + keyoff) % len(keylist)
                 keyoff += 1
                 key = keylist[temp % len(keylist)]
-                if len(port.mmap[key]) >= 5:
-                    if port.mmap[key][0] == 'get_bytes':
+                if len(port.mmap[key]) >= 6:
+                    if port.mmap[key][1] == 'get_bytes':
                         val = oom_get_keyvalue(port, key)
                         outstr += key + ': ' + hexstr(val) + '; '
                     else:

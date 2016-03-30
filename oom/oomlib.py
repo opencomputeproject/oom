@@ -141,6 +141,10 @@ class Port:
     def __init__(self, cport):
         self.c_port = cport
 
+        # create an empty page cache
+        self.pages = {}
+        self.readcount = 0
+
         # copy the C character array into a more manageable python string
         self.port_name = bytearray(cport.name).rstrip('\0')
         self.port_type = get_port_type(self)
@@ -159,6 +163,15 @@ class Port:
             self.wmap = {}
         for func in addon_fns:  # call all the addons to extend this port
             func(self)
+        return(None)
+
+    def add_addr(self, address):
+        self.pages.update({address: {}})
+
+    def invalidate_page(self, address, pagekey):
+        if address not in self.pages:
+            self.add_addr(address)
+        self.pages[address].pop(pagekey, 'already empty')
 
 
 #
@@ -195,7 +208,7 @@ def oom_get_portlist():
 #
 def get_port_type(port):
     if port.c_port.oom_class == port_class_e['SFF']:
-        data = oom_get_memory_sff(port, 0xA0, 0, 0, 1)
+        data = oom_get_cached_sff(port, 0xA0, 0, 0, 1)
         ptype = ord(data[0])
         return(ptype)
     # TODO: get type for CFP modules, requires oom_get_memory_cfp()
@@ -204,13 +217,47 @@ def get_port_type(port):
 
 
 #
+# Manage the buffer cache in the port class, transparently fill the
+# cache (for this i2c address, for this page) if it is empty,
+# return the requested data
+#
+def oom_get_cached_sff(port, address, page, offset, length):
+    if address not in port.pages:
+        port.add_addr(address)
+
+    if offset < 128:   # Special case low memory, not a real page
+        pagekey = -1
+        pageoffs = 0
+    else:
+        pagekey = page
+        pageoffs = 128
+
+    if pagekey not in port.pages[address]:
+        buf = oom_get_memory_sff(port, address, page, pageoffs, 128)
+        port.pages[address].update({pagekey: buf})
+
+    # the data is now in the page cache, just fetch what is needed
+    start = offset - pageoffs
+    end = start + length
+    if end < 129:
+        data = port.pages[address][pagekey][start: end]
+    else:   # allow reading low memory and page memory in one read
+        data = port.pages[address][pagekey][start: 128]
+        data += oom_get_cached_sff(port, address, page, 128,
+                                   length - (128 - offset))
+    return(data)
+
+
+#
 # Allocate the memory for raw reads, return the data cleanly
+# Does not interact at all with port's page caches
 #
 def oom_get_memory_sff(port, address, page, offset, length):
-    data = create_string_buffer(length)   # allocate space
+    data = create_string_buffer(length)  # allocate space
+    port.readcount = port.readcount + 1
     retlen = oomsouth.oom_get_memory_sff(byref(port.c_port), address,
                                          page, offset, length, data)
-    return data
+    return(data)
 
 
 #
@@ -218,6 +265,10 @@ def oom_get_memory_sff(port, address, page, offset, length):
 #
 def oom_set_memory_sff(port, address, page, offset, length, data):
     # data = create_string_buffer(length)   # allocate space
+    pagekey = page
+    if offset < 128:
+        pagekey = -1
+    port.invalidate_page(address, pagekey)  # force re-read after write
     retlen = oomsouth.oom_set_memory_sff(byref(port.c_port), address,
                                          page, offset, length, data)
     return retlen
@@ -228,10 +279,28 @@ def oom_get_keyvalue(port, key):
     mm = port.mmap
     if key not in mm:
         return ''
-    par = (port,) + mm[key][1:5]              # get the location
-    raw_data = oom_get_memory_sff(*par)       # get the data
-    decoder = getattr(decodelib, mm[key][0])  # get the decoder
-    par = mm[key][5:]                         # extra decoder parms
+    par = (port,) + mm[key][2:6]              # get the location
+    if mm[key][0] == 0:                       # static data, use cache
+        raw_data = oom_get_cached_sff(*par)   # get the cached data
+    else:
+        raw_data = oom_get_memory_sff(*par)   # get the fresh data
+    decoder = getattr(decodelib, mm[key][1])  # get the decoder
+    par = mm[key][6:]                         # extra decoder parms
+    temp = decoder(raw_data, *par)            # get the value
+    return temp
+
+
+# for given port, return the value of the given key
+# this version always uses the cached value.  Used by oom_get_memory
+# to scoop up all of the keys with one read of EEPROM
+def oom_get_keyvalue_cached(port, key):
+    mm = port.mmap
+    if key not in mm:
+        return ''
+    par = (port,) + mm[key][2:6]              # get the location
+    raw_data = oom_get_cached_sff(*par)       # get the cached data
+    decoder = getattr(decodelib, mm[key][1])  # get the decoder
+    par = mm[key][6:]                         # extra decoder parms
     temp = decoder(raw_data, *par)            # get the value
     return temp
 
@@ -244,13 +313,13 @@ def oom_set_keyvalue(port, key, value):
         return -1
     if key not in wm:
         return -1
-    par = (port,) + mm[key][1:5]     # get the read parameters
+    par = (port,) + mm[key][2:6]     # get the read parameters
     raw_data = oom_get_memory_sff(*par)    # get the current data
     encoder = getattr(decodelib, wm[key])  # find the encoder
-    par = mm[key][5:]
+    par = mm[key][6:]
     temp = encoder(raw_data, value, *par)  # stuff value into raw_data
-    retval = oom_set_memory_sff(port, mm[key][1], mm[key][2], mm[key][3],
-                                mm[key][4], temp)
+    retval = oom_set_memory_sff(port, mm[key][2], mm[key][3], mm[key][4],
+                                mm[key][5], temp)
     return retval
 
 
@@ -260,14 +329,22 @@ def oom_set_keyvalue(port, key, value):
 #
 def oom_get_memory(port, function):
 
+    mm = port.mmap
     funcmap = port.fmap
     retval = {}
 
     if function not in funcmap:
         return None
 
-    for keys in funcmap[function]:
-        retval[keys] = oom_get_keyvalue(port, keys)
+    for key in funcmap[function]:
+        if mm[key][0] == 1:         # Dynamic key, invalidate page cache
+            pagekey = mm[key][3]    # page of interest
+            if mm[key][4] < 128:    # unless it is the low memory page
+                pagekey = -1        # whose pagekey is -1
+            port.invalidate_page(mm[key][2], pagekey)
+
+    for key in funcmap[function]:
+        retval[key] = oom_get_keyvalue_cached(port, key)
     return retval
 
 

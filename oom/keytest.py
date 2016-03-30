@@ -22,8 +22,8 @@ port = oom_get_port(0)
 # report their values for this port
 keymap = port.mmap
 for keyx in sorted(keymap.keys()):
-    if len(keymap[keyx]) == 5:
-        if keymap[keyx][0] == 'get_bytes':
+    if len(keymap[keyx]) == 6:
+        if keymap[keyx][1] == 'get_bytes':
             val = oom_get_keyvalue(port, keyx)
             print keyx + ': ' + hexstr(val)
         else:
