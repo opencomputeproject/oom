@@ -424,17 +424,22 @@ def set_bits(current, new, offset, numbits):
             (numbits > 8) or (numbits < 1) or \
             ((offset - numbits) < -1) or (new > 255):
         return
-    temp = ord(current[0])
+    tempcurrent = ord(current[0])
 
-    # Set the target bits to all 1s
+    # Set the target bits in tempcurrent to all 1s
     mask = 0xFF >> 8 - numbits
     mask = mask << ((offset + 1) - numbits)
-    temp = temp | mask
+    tempcurrent = tempcurrent | mask
 
-    # line up the new bits to the right spot, stuff 'em in
-    temp = temp & (new << ((offset + 1) - numbits))
+    # align the new bits, and mask the non-target bits
+    tempnew = new << ((offset + 1) - numbits)
+    mask = ~mask & 0xFF
+    tempnew = tempnew | (mask)
+
+    # mash them together
+    newval = tempnew & tempcurrent
 
     # package the result for oom_set_memory_sff
     retval = create_string_buffer(1)
-    retval[0] = chr(temp)
+    retval[0] = chr(newval)
     return retval
