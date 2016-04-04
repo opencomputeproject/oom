@@ -266,6 +266,7 @@ MM = {             # dynamic?, decoder, addr, page, offset,length, BO, BL
     'ENHANCED_OPTIONS': (0, 'get_int', 0xA0, 0, 221, 1),
     # note, byte 222 is bit rate in units of 250Mb, see BR_NOMINAL key
 
+    'VENDOR_SPECIFIC_224': (0, 'get_bytes', 0xA0, 0, 224, 32),
     }
 
 
