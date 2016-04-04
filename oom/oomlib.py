@@ -349,12 +349,13 @@ def oom_get_memory(port, function):
 
 
 # debug helper function, print raw data, in hex
-def print_block_hex(data):
+def print_block_hex(data, initial):
     dataptr = 0
     bytesleft = len(data)
     lines = (bytesleft + 15) / 16
+    lineaddr = initial
     for i in range(lines):
-        outstr = "       "
+        outstr = "%.4xx:  " % lineaddr
         blocks = (bytesleft + 3) / 4
         if blocks > 4:
             blocks = 4
@@ -370,6 +371,7 @@ def print_block_hex(data):
                 outstr += foo[2:4]
                 dataptr += 1
                 bytesleft -= 1
+                lineaddr += 1
             outstr += ' '
         print outstr
 

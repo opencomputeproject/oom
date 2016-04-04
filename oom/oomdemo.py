@@ -20,7 +20,7 @@ print 'oom_get_memory_sff demo:'
 print 'Port 0, address A2h, page 0, offset 0, 128 bytes:'
 print 'Port Name: ' + port_list[0].port_name
 print
-print_block_hex(oom_get_memory_sff(port_list[0], 0xA2, 0, 0, 128))
+print_block_hex(oom_get_memory_sff(port_list[0], 0xA2, 0, 0, 128), 0)
 
 # demo the get_keyvalue() API
 print
@@ -53,7 +53,7 @@ print '*******************'
 print 'oom_set_memory_sff demo'
 print '0xA2, page 0, offset 128, 16 bytes, initial content:'
 content = oom_get_memory_sff(port, 0xA2, 0, 128, 16)
-print_block_hex(content)
+print_block_hex(content, 128)
 content = '16 changed bytes'
 length = oom_set_memory_sff(port, 0xA2, 0, 128, 16, content)
 print '0xA2, page 0, offset 128, 16 bytes, new content: \'16 changed bytes\':'
@@ -78,7 +78,7 @@ print '*******************'
 print 'QSFP+ demo'
 port = oom_get_port(5)   # in the southbound shim, 5 is a QSFP port
 print 'port 5, page 1 (QSFP, 0xA0, page 0, offset 128, 128 bytes)'
-print_block_hex(oom_get_memory_sff(port, 0xA0, 0, 128, 128))
+print_block_hex(oom_get_memory_sff(port, 0xA0, 0, 128, 128), 128)
 print '*******************'
 print 'Serial ID keys (all from page 0)'
 print "SERIAL_ID: " + str(oom_get_memory(port, "SERIAL_ID"))
