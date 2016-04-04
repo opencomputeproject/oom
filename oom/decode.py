@@ -377,50 +377,6 @@ def set_int(current, new):
     return retval
 
 
-# Note that set_bit sets the bit at 'n' to the value 'new'
-def set_bitn(current, new, bit):
-    temp = ord(current[0])
-    if new == 0:   # note, choices are zero and not zero
-        temp = temp & ~(1 << bit)
-    else:
-        temp = temp | (1 << bit)
-    retval = create_string_buffer(1)
-    retval[0] = chr(temp)
-    return retval
-
-
-def set_bit0(current, new):
-    return set_bitn(current, new, 0)
-
-
-def set_bit1(current, new):
-    return set_bitn(current, new, 1)
-
-
-def set_bit2(current, new):
-    return set_bitn(current, new, 2)
-
-
-def set_bit3(current, new):
-    return set_bitn(current, new, 3)
-
-
-def set_bit4(current, new):
-    return set_bitn(current, new, 4)
-
-
-def set_bit5(current, new):
-    return set_bitn(current, new, 5)
-
-
-def set_bit6(current, new):
-    return set_bitn(current, new, 6)
-
-
-def set_bit7(current, new):
-    return set_bitn(current, new, 7)
-
-
 # insert the low order 'numbits' from 'new' into 'current',
 # starting at 'offset'.  This is the reverse
 # of get_bits(x, offset, numbits)
