@@ -51,8 +51,8 @@ MM = {             # dynamic?, decoder, addr, page, offset,length, BO, BL
      'BR_MIN':           (0, 'get_brmin', 0xA0, 0, 12, 56),  # bytes 12, 66, 67
      'VENDOR_SN':        (0, 'get_string', 0xA0, 0, 68, 16),
      'DATE_CODE':        (0, 'get_string', 0xA0, 0, 84, 8),
-     'DIAGNOSTIC_MONITORING_TYPE': (0, 'get_bytes', 0xA0, 0, 92, 1),
-     'ENHANCED_OPTIONS': (0, 'get_bytes', 0xA0, 0, 93, 1),
+     'DIAGNOSTIC_MONITORING_TYPE': (0, 'get_int', 0xA0, 0, 92, 1),
+     'ENHANCED_OPTIONS': (0, 'get_int', 0xA0, 0, 93, 1),
      'SFF_8472_COMPLIANCE': (0, 'get_int', 0xA0, 0, 94, 1),
      'VENDOR_SPECIFIC_96': (0, 'get_bytes', 0xA0, 0, 96, 32),
 
@@ -90,7 +90,7 @@ FM = {
                   'LENGTH_OM4_OR_CU',
                   'LENGTH_OM3',
                   'VENDOR_NAME',
-                  'TRANSCEIVER',
+                  'TRANSCEIVER_EXT',
                   'VENDOR_OUI',
                   'VENDOR_PN',
                   'VENDOR_REV',
