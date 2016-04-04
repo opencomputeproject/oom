@@ -233,9 +233,9 @@ MM = {             # dynamic?, decoder, addr, page, offset,length, BO, BL
     'IDENTIFIER':       (0, 'get_int', 0xA0, 0, 128, 1),
     'EXT_IDENTIFIER':   (0, 'get_int', 0xA0, 0, 129, 1),
     'CONNECTOR':        (0, 'get_int', 0xA0, 0, 130, 1),
-    'SPEC_COMPLIANCE':  (0, 'get_bytes', 0xA0, 0, 131, 8),       # see table 33
+    'SPEC_COMPLIANCE':  (0, 'get_bytes', 0xA0, 0, 131, 8),    # see table 33
     'ENCODING':         (0, 'get_int', 0xA0, 0, 139, 1),
-    'BR_NOMINAL':       (0, 'get_bitrate', 0xA0, 0, 140, 1),  # bytes 12 & 66!
+    'BR_NOMINAL':       (0, 'get_bitrate', 0xA0, 0, 140, 83),  # bytes 140, 222
     'EXT_RATE_COMPLY':  (0, 'get_bits', 0xA0, 0, 141, 1, 0, 1),
 
     'LENGTH_SMF_KM':    (0, 'get_length_km', 0xA0, 0, 142, 1),
@@ -256,6 +256,15 @@ MM = {             # dynamic?, decoder, addr, page, offset,length, BO, BL
     'CU_ATTENUATE_5_0': (0, 'get_CU_5_0', 0xA0, 0, 147, 41),     # this is 3
     'WAVELEN_TOLERANCE': (0, 'get_wave_tol', 0xA0, 0, 188, 2),
     'MAX_CASE_TEMP':    (0, 'get_int', 0xA0, 0, 190, 1),
+
+    # Page 0, Extended Serial ID fields
+    'LINK_CODES':       (0, 'get_int', 0xA0, 0, 192, 1),
+    'OPTIONS':          (0, 'get_bytes', 0xA0, 0, 193, 3),
+    'VENDOR_SN':        (0, 'get_string', 0xA0, 0, 196, 16),
+    'DATE_CODE':        (0, 'get_string', 0xA0, 0, 212, 8),
+    'DIAG_MONITOR_TYPE': (0, 'get_int', 0xA0, 0, 220, 1),
+    'ENHANCED_OPTIONS': (0, 'get_int', 0xA0, 0, 221, 1),
+    # note, byte 222 is bit rate in units of 250Mb, see BR_NOMINAL key
 
     }
 
@@ -285,6 +294,14 @@ FM = {
                   'WAVELEN_TOLERANCE',
                   'MAX_CASE_TEMP'
                   ),
+
+    'SERIAL_ID_EXT':    ('LINK_CODES',
+                         'OPTIONS',
+                         'VENDOR_SN',
+                         'DATE_CODE',
+                         'DIAG_MONITOR_TYPE',
+                         'ENHANCED_OPTIONS'
+                         ),
 
     'DOM':      ('TEMPERATURE',
                  'SUPPLY_VOLTAGE',

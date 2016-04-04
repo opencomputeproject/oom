@@ -189,13 +189,19 @@ def get_bits(x, offset, numbits):
 def get_bitrate(x):         # returns nominal bit rate IN MB/s
     rate = ord(x[0])
     # take care here...
-    # SFP has a special case for rate 0xFF, encoded here
-    # QSFP+ does not have the special case, so only 1 byte is sent
-    if ((rate == 255) and (len(x) > 1)):
-        if (len(x) < 55):
+    # for rates <= 25.4Gb, both SFP and QSFP+ use one byte, in units of 100Mb
+    # for rates >25.4Gb, both use 0xFF to indicate 'look elsewhere'
+    # SFP uses byte 66 (vs byte 12), hence offset is 54 bytes
+    # QSFP uses byte 222 (vs byte 140), hence offset is 82 bytes
+    # both specify rate in units of 250Mb for extended byte
+    if (rate == 255):
+        if (len(x) == 55):  # SFP
+            rate = ord(x[54]) * 250
+        elif (len(x) == 83):   # QSFP+
+            rate = ord(x[82]) * 250
+        else:
             print "can't decode bit rate"
             return
-        rate = ord(x[54]) * 250  # byte 66 is at 54 (starting at 12)
     else:
         rate = rate * 100
     return rate
