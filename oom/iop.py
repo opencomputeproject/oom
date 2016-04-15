@@ -20,7 +20,6 @@ outfilename += timestr + '.txt'
 # see if the output should go to the screen or a file
 parms = sys.argv
 if (len(parms) > 1):
-    print parms[1]
     if parms[1] == '-f':
         sys.stdout = open(outfilename, 'w+')
 
