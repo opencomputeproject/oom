@@ -23,6 +23,9 @@ all: $(SRC) $(OBJ)
 	cp MUQ1BZB_EEPROM_20160108_192514.txt module_data/2.A0
 	cp MUQ1BZB_FCCABY_20160108_192514.txt module_data/2.pages
 	cp qsfpdatafile.txt module_data/5.A0
+	rm -f *.o
+	rm -f *.pyc
+	rm -f *~
 
 # build all the .o files that go into all the pieces
 oomsouth_driver.o: oomsouth_driver.c
