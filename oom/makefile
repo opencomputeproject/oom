@@ -5,8 +5,7 @@ SHIM=file
 # SHIM=ethtool
 # SHIM=aardvark
 
-SRC = oom_south.h oom_$(SHIM).c oomsouth_driver.c makefile sfp.py qsfp_plus.py \
-      oomdemo.py decode.py oomlib.py \
+SRC = oom_south.h oom_$(SHIM).c oomsouth_driver.c makefile \
       MUP0WB0_EEPROM_20160108_192637.txt \
       MUP0WB0_FCCABY_20160108_192637.txt \
       MUQ1BZB_EEPROM_20160108_192514.txt \
