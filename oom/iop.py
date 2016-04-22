@@ -8,9 +8,9 @@ portlist = oom_get_portlist()
 port = portlist[0]              # assume one port on Aardvark
 
 # build the name of the file to store results to
-vendor_name = oom_get_keyvalue(port, 'VENDOR_NAME').replace(" ","_")[0:8]
+vendor_name = oom_get_keyvalue(port, 'VENDOR_NAME').replace(" ", "_")[0:8]
 outfilename = vendor_name + '_'
-vendor_sn = oom_get_keyvalue(port, 'VENDOR_SN').replace(" ","_")
+vendor_sn = oom_get_keyvalue(port, 'VENDOR_SN').replace(" ", "_")
 outfilename += vendor_sn + '_EEPROMdecode_'
 dt = datetime.now()
 dateformat = "%Y%m%d%H%M%S"
@@ -30,7 +30,7 @@ print '%s %s module' % \
          mod_id(chr(port.port_type)))
 print 'Part Number: %s  Serial Number: %s' % \
          (oom_get_keyvalue(port, 'VENDOR_PN'),
-         oom_get_keyvalue(port, 'VENDOR_SN'))
+          oom_get_keyvalue(port, 'VENDOR_SN'))
 print outfilename
 
 # print out the Serial ID keys
