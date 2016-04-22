@@ -23,7 +23,7 @@ all: $(SRC) $(OBJ)
 	cp qsfpdatafile.txt module_data/5.A0
 
 oomsouth_driver.exe: oomsouth_driver.c oom_internal.o oom_$(SHIM).o \
-	             ./lib/oom_south.so makefile
+	             ./lib/oom_south.so aardvark.c makefile
 	gcc -Wall -c oomsouth_driver.c
 	mkdir -p ./lib
 ifeq ($(SHIM), aardvark)
