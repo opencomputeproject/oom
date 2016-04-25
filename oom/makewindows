@@ -52,7 +52,7 @@ oomsouth_driver.exe: oomsouth_driver.o oom_internal.o oom_aardvark.o \
 sim_oomsouth_driver.exe: oomsouth_driver.o oom_internal.o oom_file.o \
 	             makewindows
 	$(CC) oomsouth_driver.o oom_internal.o oom_file.o \
-		-o oomsouth_driver.exe
+		-o sim_oomsouth_driver.exe
 
 # assemble the aardvark shim (as oom_south.so) and the file shim
 ./lib/oom_south.so: oom_aardvark.o oom_internal.o aardvark.o oom_file.o \
@@ -60,8 +60,9 @@ sim_oomsouth_driver.exe: oomsouth_driver.o oom_internal.o oom_file.o \
 	mkdir -p ./lib
 	cp -f aardvark.dll ./lib
 	$(CC) -shared oom_internal.o aardvark.o oom_aardvark.o \
-			-o ./lib/oom_south.so
+			-o ./lib/aard_oom_south.so
 	$(CC) -shared oom_internal.o oom_file.o -o ./lib/sim_oom_south.so
+	cp ./lib/aard_oom_south.so ./lib/oom_south.so
 
 clean:
 	rm -f oom_*.o ./lib oomsouth_driver.exe module_data/* \
