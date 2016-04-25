@@ -85,7 +85,7 @@ int oom_get_portlist(oom_port_t portlist[], int listsize)
 
 		/* Open, read, interpret the A0 data file */
 		sprintf(fname, "./module_data/%d.A0", port);
-		fp = fopen(fname, "r");
+		fp = fopen(fname, "rb");
 		if (fp == NULL) {
 			pptr->oom_class = OOM_PORT_CLASS_UNKNOWN;
 			printf("module %d is not present (%s)\n", port, fname);
@@ -180,7 +180,7 @@ int SFP_read_A2h(int port, oom_port_t* pptr)
 	stopit = 0;
 	/* Open, read, interpret the A2/pages data file */
 	sprintf(fname, "./module_data/%d.pages", port);
-	fp = fopen(fname, "r");
+	fp = fopen(fname, "rb");
 	if (fp == NULL) {
 		pptr->oom_class = OOM_PORT_CLASS_UNKNOWN;
 		/* 
