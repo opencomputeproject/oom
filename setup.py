@@ -8,5 +8,6 @@ setup(
     author_email="don@thebollingers.org",
     license="MIT",
     packages=find_packages(),
+    package_data={'oom': ['lib/*', 'module_data/*']},
     zip_safe=False
 )
