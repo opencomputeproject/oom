@@ -10,7 +10,8 @@ SRC = oom_south.h oom_$(SHIM).c oomsouth_driver.c makefile \
       MUP0WB0_FCCABY_20160108_192637.txt \
       MUQ1BZB_EEPROM_20160108_192514.txt \
       MUQ1BZB_FCCABY_20160108_192514.txt \
-      qsfpdatafile.txt
+      qsfpdatafile.txt\
+      qsfp28datafile.txt
 
 OBJ = ./lib/oom_south.so oomsouth_driver.exe
 
@@ -21,6 +22,7 @@ all: $(SRC) $(OBJ)
 	cp MUQ1BZB_EEPROM_20160108_192514.txt module_data/2.A0
 	cp MUQ1BZB_FCCABY_20160108_192514.txt module_data/2.pages
 	cp qsfpdatafile.txt module_data/5.A0
+	cp qsfp28datafile.txt module_data/4.A0
 
 oomsouth_driver.exe: oomsouth_driver.c oom_internal.o oom_$(SHIM).o \
 	             ./lib/oom_south.so aardvark.c makefile
