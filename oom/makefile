@@ -8,6 +8,10 @@
 #
 # Builds the Common Module Interface library
 #
+# make [SHIM={file, ethtool, aardvark}] [V=] <target>
+# -> Select the SHIM you want, default is 'file'
+# -> V is for verbose.  If V is not zero, makefile is verbose.
+#
 #<
 
 # Don't move this, it must be in FRONT of any included makefiles
