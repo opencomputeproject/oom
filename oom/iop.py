@@ -1,20 +1,23 @@
-from oom import *
-from decode import hexstr, mod_id
-from datetime import datetime
-import sys
-
-
 """
+
+iop.py
+
 Display Interop Testing info for the module in 'port'
 
 python iop.py [<port number> | -all] [-f]
 
-first parameter can be either a port number, or 'all' for all ports
-the next parameter (which could be the first) is -f if results
+The first parameter can be either a port number, or 'all' for all ports
+Default is port number 0
+The next parameter (which could be the first) is -f if results
 should go to a file.  The file's name includes the vendor's name
 and other module data.
 If -f is not specified, print to stdout
 """
+
+from oom import *
+from decode import hexstr, mod_id
+from datetime import datetime
+import sys
 
 
 def iop(port, fileflag):
@@ -112,6 +115,10 @@ if __name__ == "__main__":
         exit()
 
     portlist = oom_get_portlist()
+    if len(portlist) == 0:
+        print "Empty portlist, configuration issue?"
+        exit()
+
     if loop == 0:
         iop(portlist[portnum], fileflag)
     else:
