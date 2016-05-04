@@ -54,10 +54,10 @@ void oom_shiminit(void) {
  * 3 - CFP
  * Port 0, 1, 3 have sequence numbers
  */
-int oom_get_portlist(oom_port_t portlist[], int listsize) 
+int oom_get_portlist(oom_port_t portlist[], int listsize)
 {
 
-	char fname[18]; 
+	char fname[18];
 	oom_port_t* pptr;
 	uint8_t* A0_data;
 	int port, stopit;
@@ -88,10 +88,12 @@ int oom_get_portlist(oom_port_t portlist[], int listsize)
 		fp = fopen(fname, "rb");
 		if (fp == NULL) {
 			pptr->oom_class = OOM_PORT_CLASS_UNKNOWN;
+			/*
 			printf("module %d is not present (%s)\n", port, fname);
-			/* perror("errno:"); */
+			perror("errno:");
+			*/
 			stopit = 1;
-		} 
+		}
 		if (stopit == 0) {
 		    A0_data = port_i2c_data[port] + 0xA0*256;
 		    retcount = fread(A0_data, sizeof(uint8_t), 1, fp);
@@ -128,7 +130,7 @@ int QSFP_plus_read(int port, oom_port_t* pptr, FILE *fp)
 {
 	/* read QSFP Port data */
 	/* Using the already open A0 file pointer, should be pointing
-	 * at the second byte of the file, should be 7 lines of 
+	 * at the second byte of the file, should be 7 lines of
 	 * human text, followed by ASCII hex data for A0 and 4 pages
 	 */
 	int stopit = 0;
@@ -172,7 +174,7 @@ int SFP_read_A2h(int port, oom_port_t* pptr)
 {
 	int stopit;
 	int j;
-	char fname[18]; 
+	char fname[18];
 	FILE* fp;
 	char* retval;
 	char inbuf[80];
@@ -183,12 +185,12 @@ int SFP_read_A2h(int port, oom_port_t* pptr)
 	fp = fopen(fname, "rb");
 	if (fp == NULL) {
 		pptr->oom_class = OOM_PORT_CLASS_UNKNOWN;
-		/* 
+		/*
 		printf("module %d is not present\n", i);
 		perror("errno:");
 		*/
 		stopit = 1;
-	} 
+	}
 	if (stopit == 0) {
 		retval = fgets(inbuf, 80, fp);
 		if ((retval == NULL) ||
@@ -222,7 +224,7 @@ int SFP_read_A2h(int port, oom_port_t* pptr)
 	return(stopit);
 }
 
-/* 
+/*
  * QSFP_readpage() reads 128 byte blocks out of the <n>.A0 file
  * decodes the hex, and puts the result into buf, leaving
  * the file pointer ready to read the next block
@@ -269,7 +271,7 @@ int QSFP_readpage(FILE* fp, uint8_t* buf)
 	}
 	return(0);
 }
-/* 
+/*
  * readpage() reads 128 byte blocks out of the .eep file
  * decodes the hex, and puts the result into buf, leaving
  * the file pointer ready to read the next block
@@ -293,7 +295,7 @@ int readpage(FILE* fp, uint8_t* buf)
 		}
 
 		/* data looks like this:
-		 
+		
 0030: 00000000 0000FF01 23456748 29041100
 0123456789012345678901234567890123456789012345
 
@@ -337,7 +339,7 @@ int oom_set_memory_sff(oom_port_t* port, int address, int page, int offset, int 
 	
 	long port_num = (long) port->handle;
 	/*
-	printf("SET: Port: %ld, address: 0x%2X, page: %d, offset: %d, len: %d, data: %s\n", port_num, 
+	printf("SET: Port: %ld, address: 0x%2X, page: %d, offset: %d, len: %d, data: %s\n", port_num,
 		address, page, offset, len, data);
 	*/
 	
@@ -377,8 +379,8 @@ int oom_get_memory_sff(oom_port_t* port, int address, int page, int offset, int 
 
 	long port_num = (long) port->handle;
 	/* comment here to quiet the tracking of this call *
-	printf("GET: Port: %d, address: 0x%2X, page: %d, offset: %d, len: %d\n", port_num, 
-		address, page, offset, len); 
+	printf("GET: Port: %d, address: 0x%2X, page: %d, offset: %d, len: %d\n", port_num,
+		address, page, offset, len);
 	 * catcher for comment above */
 	
 	i2cptr = port_i2c_data[port_num];  /* get the data for this port */
