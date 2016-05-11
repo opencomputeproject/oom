@@ -12,6 +12,7 @@
 
 import binascii
 from ctypes import create_string_buffer
+from math import log10
 
 
 __author__ = "Yuan Yu"
@@ -75,6 +76,14 @@ def get_power(x):   # return in mW
     temp = ord(x[0])*256 + ord(x[1])
     result = float(temp*0.1/1000)
     return result
+
+
+def mwtodbm(x):
+    return 10 * log10(x)
+
+
+def get_power_dbm(x):   # return power in dbm (10*log10(power-in-mw))
+    return mwtodbm(get_power(x))
 
 
 def get_current(x):  # return in mA
