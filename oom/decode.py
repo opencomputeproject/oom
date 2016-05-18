@@ -79,6 +79,8 @@ def get_power(x):   # return in mW
 
 
 def mwtodbm(x):
+    if x == 0:
+        return -30  # by convention, -30dbm means no signal at all
     return 10 * log10(x)
 
 
