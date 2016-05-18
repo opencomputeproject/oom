@@ -126,7 +126,7 @@ int _readMemory (Aardvark handle, u08 device, u08 addr, u16 length, uint8_t* dat
     }
     if (count == 0) {
         printf("error: no bytes read\n");
-        printf("  are you sure you have the right slave address?\n");
+        printf("...check cabling, power to the eval board\n");
         return (count);
     }
     else if (count != length) {
