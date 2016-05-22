@@ -86,26 +86,42 @@ port_class_e = {
 # note this means the southbound shim MUST be installed in
 # this location (relative to this module, in lib, named oom_south.so)
 #
-libdir = os.path.dirname(os.path.realpath(__file__))
-oomsouth = cdll.LoadLibrary(libdir + "/lib/oom_south.so")
+packagedir = os.path.dirname(os.path.realpath(__file__))
+oomsouth = cdll.LoadLibrary(packagedir + "/lib/oom_south.so")
+
+# The simulator shim needs to know where the package is installed,
+# to find the module data, the Aardvark shim needs to know where
+# to find it's 'aardvark.dll' library.  This is not a documented/required
+# part of the Southbound API, so we'll try it.  If it doesn't work,
+# skip it, the shim must not need the info
+try:
+    oomsouth.setpackagepath(packagedir)
+except:
+    pass
 
 # one time setup, get the names of the decoders in the decode library
-decodelib = importlib.import_module('decode')
+# try for a local copy first, then one relative to the package
+
+try:
+    decodelib = importlib.import_module('decode')
+except:
+    decodelib = importlib.import_module('oom.decode')
 
 # and find any addons that should be incorporated
 addon_fns = []
-sys.path.insert(0, './addons')   # required, to get them imported
+addon_dir = packagedir + '/addons'
+sys.path.insert(0, addon_dir)   # required, to get them imported
 
 # build a list of modules in the addons directory
 modulist = []
-modnamelist = glob.glob('./addons/*.py')
+modnamelist = glob.glob(addon_dir + '/*.py')
 for name in modnamelist:
-    name = name.split('/')[2]
+    name = name.split('/')[-1]
     name = name[0:len(name)-3]
     modulist.append(name)
-modnamelist = glob.glob('./addons/*.pyc')  # obfuscated modules!
+modnamelist = glob.glob(addon_dir + '/*.pyc')  # obfuscated modules!
 for name in modnamelist:
-    name = name.split('/')[2]
+    name = name.split('/')[-1]
     name = name[0:len(name)-4]
     modulist.append(name)
 modulist = list(set(modulist))  # eliminate dups, eg: x.py and x.pyc
@@ -153,7 +169,11 @@ class Port:
         typename = type_to_str(self.port_type).lower()
         try:
             # here is where the type is tied to the keymap file
-            maps = importlib.import_module(typename, package=None)
+            # again, try for a local copy first, then relative to the package
+            try:
+                maps = importlib.import_module(typename, package=None)
+            except:
+                maps = importlib.import_module('oom.' + typename)
             self.mmap = maps.MM
             self.fmap = maps.FM
             self.wmap = maps.WMAP

@@ -5,6 +5,9 @@
 | All rights reserved.
 | www.totalphase.com
 |
+| NOTE!!!  This file has been modified for OOM, it is not the same as
+| the original source distributed by Total Phase!
+|
 | Redistribution and use in source and binary forms, with or without
 | modification, are permitted provided that the following conditions
 | are met:
@@ -118,13 +121,13 @@ static char SO_NAME[MAX_SO_PATH+1] = API_NAME ".so";
  * These functions allow the Linux behavior to emulate
  * the Windows behavior as specified below in the Windows
  * support section.
- * 
+ *
  * First, search for the shared object in the application
  * binary path, then in the current working directory.
- * 
+ *
  * Searching the application binary path requires /proc
  * filesystem support, which is standard in 2.4.x kernels.
- * 
+ *
  * If the /proc filesystem is not present, the shared object
  * will not be loaded from the execution path unless that path
  * is either the current working directory or explicitly
@@ -200,7 +203,10 @@ static void _setSearchPath () {
 #define dlopen(name, flags)  LoadLibraryA(name)
 #define dlsym(handle, name)  GetProcAddress(handle, name)
 #define dlerror()            "Exiting program"
-#define SO_NAME              API_NAME ".dll"
+/* #define SO_NAME              API_NAME ".dll"   modified for OOM */
+#define SO_BASE              API_NAME ".dll"
+#define LIBSTR		     "\\lib\\"
+char* SO_NAME;
 
 /*
  * Use the default Windows DLL loading rules:
@@ -218,7 +224,45 @@ static void _setSearchPath () {
     /* Do nothing */
 }
 
-#endif
+
+/*
+ * OOM function to set the absolute name of the Aardvark API file
+ * This will override all the library search paths. OOM calls
+ * setpackagepath to explicitly declare the path to the OOM package.
+ * The Aardvark shared library will be in the './lib' dir under
+ * the OOM package.
+ */
+
+void setpackagepath(char* pdir) {
+    char* mem;
+    char* prefix;
+    char* ptr;
+
+
+    /* default, for straight Windows environment */
+    prefix = "";
+    ptr = &pdir[0];
+
+    if (strncmp(pdir, "/usr/lib", 8) == 0) {  /* cygwin home directory */
+	prefix = "C:/cygwin64";
+	ptr = &pdir[4];
+    } else if (strncmp(pdir, "/cygdrive/",10) == 0) {  /* cygwin root drive */
+	prefix = malloc(3);
+	strcpy(prefix,"C:");
+	prefix[0] = toupper(pdir[10]);  /* might not actually be 'C' */
+	ptr = &pdir[11];
+    }
+    mem = malloc(strlen(prefix) + strlen(ptr) +
+		 strlen(LIBSTR)+ strlen(SO_BASE) + 1);
+    sprintf(mem, "%s%s%s%s", prefix, ptr, LIBSTR, SO_BASE);
+    for (int i = 0; i < strlen(mem); i++) {
+	if (mem[i] == '/') mem[i] = '\\';
+    }
+    SO_NAME = mem;
+    /* printf("Aardvark Shared Lib: %s\n", SO_NAME); */
+}
+
+# endif
 
 
 /*=========================================================================
@@ -275,8 +319,8 @@ static void *_loadFunction (const char *name, int *result) {
                         API_REQ_SW_VERSION & 0xff);
             else
                 fprintf(stderr, "(library version OK)\n");
-                        
-                   
+
+
             fprintf(stderr, "  Library version = v%d.%02d  ",
                     (sw_version >> 8) & 0xff,
                     (sw_version >> 0) & 0xff);

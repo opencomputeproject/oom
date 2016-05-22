@@ -29,6 +29,17 @@ int QSFP_readpage(FILE* fp, uint8_t* buf);
 int QSFP_plus_read(int port, oom_port_t* pptr, FILE *fp);
 int SFP_read_A2h(int port, oom_port_t* pptr);
 
+char* moduledir;
+
+void setpackagepath(char* packagedirparm) {
+    char* modulestr = "/module_data/";
+    int modpathlen;
+
+    modpathlen = strlen(packagedirparm) + strlen(modulestr) + 1;
+    moduledir = malloc(modpathlen);
+    sprintf(moduledir, "%s%s", packagedirparm, modulestr);
+}
+
 /* MOCKS */
 
 /* oom_shiminit initializes the backing memory for the simulator shim */
@@ -57,7 +68,7 @@ void oom_shiminit(void) {
 int oom_get_portlist(oom_port_t portlist[], int listsize)
 {
 
-	char fname[18];
+	char fname[512];
 	oom_port_t* pptr;
 	uint8_t* A0_data;
 	int port, stopit;
@@ -84,7 +95,7 @@ int oom_get_portlist(oom_port_t portlist[], int listsize)
 		sprintf(pptr->name, "port%d", port);
 
 		/* Open, read, interpret the A0 data file */
-		sprintf(fname, "./module_data/%d.A0", port);
+		sprintf(fname, "%s%d.A0", moduledir, port);
 		fp = fopen(fname, "rb");
 		if (fp == NULL) {
 			pptr->oom_class = OOM_PORT_CLASS_UNKNOWN;
@@ -174,14 +185,14 @@ int SFP_read_A2h(int port, oom_port_t* pptr)
 {
 	int stopit;
 	int j;
-	char fname[18];
+	char fname[512];
 	FILE* fp;
 	char* retval;
 	char inbuf[80];
 
 	stopit = 0;
 	/* Open, read, interpret the A2/pages data file */
-	sprintf(fname, "./module_data/%d.pages", port);
+	sprintf(fname, "%s%d.pages", moduledir, port);
 	fp = fopen(fname, "rb");
 	if (fp == NULL) {
 		pptr->oom_class = OOM_PORT_CLASS_UNKNOWN;
@@ -218,7 +229,7 @@ int SFP_read_A2h(int port, oom_port_t* pptr)
 		}
 	}
 	if (stopit != 0) {  /* problem somewhere in readpage() */
-		printf("%s is not a module data file(6z)\n", fname);
+		printf("%s is not a module data file\n", fname);
 		pptr->oom_class = OOM_PORT_CLASS_UNKNOWN;
 	}
 	return(stopit);
@@ -244,7 +255,7 @@ int QSFP_readpage(FILE* fp, uint8_t* buf)
 		retval = fgets(inbuf, 80, fp);
 		if (retval != inbuf) {
 			printf("badly formatted module data file\n");
-			return(1);
+			return(-1);
 		}
 
 		/* data looks like this:

@@ -98,7 +98,7 @@ $(MOD_INTERNAL_STAMP): oom_internal.c oom_internal.h
 	$(Q) gcc -Wall -fPIC -c oom_internal.c
 	$(Q) touch $@
 
-$(MOD_SOUTH_STAMP): oom_south.h oom_$(SHIM).c
+$(MOD_SOUTH_STAMP): oom_south.h oom_$(SHIM).c aardvark.c
 	$(Q) rm -f $@
 	$(Q) echo "==== Compiling Library Shim: $(SHIM) ===="
 	$(Q) gcc -Wall -fPIC -c oom_$(SHIM).c
