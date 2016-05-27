@@ -86,8 +86,8 @@ port_class_e = {
 # note this means the southbound shim MUST be installed in
 # this location (relative to this module, in lib, named oom_south.so)
 #
-packagedir = os.path.dirname(os.path.realpath(__file__))
-oomsouth = cdll.LoadLibrary(packagedir + "/lib/oom_south.so")
+packagedir = os.path.normpath(os.path.dirname(os.path.realpath(__file__)))
+oomsouth = cdll.LoadLibrary(os.path.join(packagedir, 'lib', 'oom_south.so'))
 
 # The simulator shim needs to know where the package is installed,
 # to find the module data, the Aardvark shim needs to know where
@@ -109,19 +109,20 @@ except:
 
 # and find any addons that should be incorporated
 addon_fns = []
-addon_dir = packagedir + '/addons'
+addon_dir = os.path.join(packagedir, 'addons')
+
 sys.path.insert(0, addon_dir)   # required, to get them imported
 
 # build a list of modules in the addons directory
 modulist = []
-modnamelist = glob.glob(addon_dir + '/*.py')
+modnamelist = glob.glob(os.path.join(addon_dir, '*.py'))
 for name in modnamelist:
-    name = name.split('/')[-1]
+    name = os.path.basename(name)
     name = name[0:len(name)-3]
     modulist.append(name)
 modnamelist = glob.glob(addon_dir + '/*.pyc')  # obfuscated modules!
 for name in modnamelist:
-    name = name.split('/')[-1]
+    name = os.path.basename(name)
     name = name[0:len(name)-4]
     modulist.append(name)
 modulist = list(set(modulist))  # eliminate dups, eg: x.py and x.pyc
