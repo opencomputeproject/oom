@@ -237,6 +237,7 @@ void setpackagepath(char* pdir) {
     char* mem;
     char* prefix;
     char* ptr;
+    int i;
 
 
     /* default, for straight Windows environment */
@@ -255,7 +256,7 @@ void setpackagepath(char* pdir) {
     mem = malloc(strlen(prefix) + strlen(ptr) +
 		 strlen(LIBSTR)+ strlen(SO_BASE) + 1);
     sprintf(mem, "%s%s%s%s", prefix, ptr, LIBSTR, SO_BASE);
-    for (int i = 0; i < strlen(mem); i++) {
+    for (i = 0; i < strlen(mem); i++) {
 	if (mem[i] == '/') mem[i] = '\\';
     }
     SO_NAME = mem;
