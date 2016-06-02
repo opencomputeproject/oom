@@ -1,3 +1,4 @@
+
 # qsfp28.py
 # qsfp28 memory map
 #
@@ -83,60 +84,72 @@ MM = {             # dynamic?, decoder, addr, page, offset,length, BO, BL
     'VENDOR_SPECIFIC_8':  (0, 'get_bytes', 0xA0, 0, 8, 1),
 
     'L_RX1_RX2_POWER': (1, 'get_bits', 0xA0, 0, 9, 1, 7, 8),  # 8 power bits
+    'L_RX1_POWER': (1, 'get_bits', 0xA0, 0, 9, 1, 7, 4),  # RX1 power bits
     'L_RX1_POWER_HIGH_ALARM':  (1, 'get_bits', 0xA0, 0, 9, 1, 7, 1),
     'L_RX1_POWER_LOW_ALARM':   (1, 'get_bits', 0xA0, 0, 9, 1, 6, 1),
     'L_RX1_POWER_HIGH_WARN':   (1, 'get_bits', 0xA0, 0, 9, 1, 5, 1),
     'L_RX1_POWER_LOW_WARN':    (1, 'get_bits', 0xA0, 0, 9, 1, 4, 1),
+    'L_RX2_POWER': (1, 'get_bits', 0xA0, 0, 9, 1, 3, 4),  # RX2 power bits
     'L_RX2_POWER_HIGH_ALARM':  (1, 'get_bits', 0xA0, 0, 9, 1, 3, 1),
     'L_RX2_POWER_LOW_ALARM':   (1, 'get_bits', 0xA0, 0, 9, 1, 2, 1),
     'L_RX2_POWER_HIGH_WARN':   (1, 'get_bits', 0xA0, 0, 9, 1, 1, 1),
     'L_RX2_POWER_LOW_WARN':    (1, 'get_bits', 0xA0, 0, 9, 1, 0, 1),
 
     'L_RX3_RX4_POWER': (1, 'get_bits', 0xA0, 0, 10, 1, 7, 8),  # 8 power bits
+    'L_RX3_POWER': (1, 'get_bits', 0xA0, 0, 10, 1, 7, 4),  # RX3 power bits
     'L_RX3_POWER_HIGH_ALARM':  (1, 'get_bits', 0xA0, 0, 10, 1, 7, 1),
     'L_RX3_POWER_LOW_ALARM':   (1, 'get_bits', 0xA0, 0, 10, 1, 6, 1),
     'L_RX3_POWER_HIGH_WARN':   (1, 'get_bits', 0xA0, 0, 10, 1, 5, 1),
     'L_RX3_POWER_LOW_WARN':    (1, 'get_bits', 0xA0, 0, 10, 1, 4, 1),
+    'L_RX4_POWER': (1, 'get_bits', 0xA0, 0, 10, 1, 3, 4),  # RX4 power bits
     'L_RX4_POWER_HIGH_ALARM':  (1, 'get_bits', 0xA0, 0, 10, 1, 3, 1),
     'L_RX4_POWER_LOW_ALARM':   (1, 'get_bits', 0xA0, 0, 10, 1, 2, 1),
     'L_RX4_POWER_HIGH_WARN':   (1, 'get_bits', 0xA0, 0, 10, 1, 1, 1),
     'L_RX4_POWER_LOW_WARN':    (1, 'get_bits', 0xA0, 0, 10, 1, 0, 1),
 
     'L_TX1_TX2_BIAS': (1, 'get_bits', 0xA0, 0, 11, 1, 7, 8),  # 8 bias bits
+    'L_TX1_BIAS': (1, 'get_bits', 0xA0, 0, 11, 1, 7, 4),  # TX1 bias bits
     'L_TX1_BIAS_HIGH_ALARM':  (1, 'get_bits', 0xA0, 0, 11, 1, 7, 1),
     'L_TX1_BIAS_LOW_ALARM':   (1, 'get_bits', 0xA0, 0, 11, 1, 6, 1),
     'L_TX1_BIAS_HIGH_WARN':   (1, 'get_bits', 0xA0, 0, 11, 1, 5, 1),
     'L_TX1_BIAS_LOW_WARN':    (1, 'get_bits', 0xA0, 0, 11, 1, 4, 1),
+    'L_TX2_BIAS': (1, 'get_bits', 0xA0, 0, 11, 1, 3, 4),  # TX2 bias bits
     'L_TX2_BIAS_HIGH_ALARM':  (1, 'get_bits', 0xA0, 0, 11, 1, 3, 1),
     'L_TX2_BIAS_LOW_ALARM':   (1, 'get_bits', 0xA0, 0, 11, 1, 2, 1),
     'L_TX2_BIAS_HIGH_WARN':   (1, 'get_bits', 0xA0, 0, 11, 1, 1, 1),
     'L_TX2_BIAS_LOW_WARN':    (1, 'get_bits', 0xA0, 0, 11, 1, 0, 1),
 
     'L_TX3_TX4_BIAS': (1, 'get_bits', 0xA0, 0, 12, 1, 7, 8),  # 8 bias bits
+    'L_TX3_BIAS': (1, 'get_bits', 0xA0, 0, 12, 1, 7, 4),  # TX3 bias bits
     'L_TX3_BIAS_HIGH_ALARM':  (1, 'get_bits', 0xA0, 0, 12, 1, 7, 1),
     'L_TX3_BIAS_LOW_ALARM':   (1, 'get_bits', 0xA0, 0, 12, 1, 6, 1),
     'L_TX3_BIAS_HIGH_WARN':   (1, 'get_bits', 0xA0, 0, 12, 1, 5, 1),
     'L_TX3_BIAS_LOW_WARN':    (1, 'get_bits', 0xA0, 0, 12, 1, 4, 1),
+    'L_TX4_BIAS': (1, 'get_bits', 0xA0, 0, 12, 1, 3, 4),  # TX4 bias bits
     'L_TX4_BIAS_HIGH_ALARM':  (1, 'get_bits', 0xA0, 0, 12, 1, 3, 1),
     'L_TX4_BIAS_LOW_ALARM':   (1, 'get_bits', 0xA0, 0, 12, 1, 2, 1),
     'L_TX4_BIAS_HIGH_WARN':   (1, 'get_bits', 0xA0, 0, 12, 1, 1, 1),
     'L_TX4_BIAS_LOW_WARN':    (1, 'get_bits', 0xA0, 0, 12, 1, 0, 1),
 
     'L_TX1_TX2_POWER':  (1, 'get_bits', 0xA0, 0, 13, 1, 7, 8),  # 8 POWER bits
+    'L_TX1_POWER':  (1, 'get_bits', 0xA0, 0, 13, 1, 7, 4),  # TX1 POWER bits
     'L_TX1_POWER_HIGH_ALARM':  (1, 'get_bits', 0xA0, 0, 13, 1, 7, 1),
     'L_TX1_POWER_LOW_ALARM':   (1, 'get_bits', 0xA0, 0, 13, 1, 6, 1),
     'L_TX1_POWER_HIGH_WARN':   (1, 'get_bits', 0xA0, 0, 13, 1, 5, 1),
     'L_TX1_POWER_LOW_WARN':    (1, 'get_bits', 0xA0, 0, 13, 1, 4, 1),
+    'L_TX2_POWER':  (1, 'get_bits', 0xA0, 0, 13, 1, 3, 4),  # TX2 POWER bits
     'L_TX2_POWER_HIGH_ALARM':  (1, 'get_bits', 0xA0, 0, 13, 1, 3, 1),
     'L_TX2_POWER_LOW_ALARM':   (1, 'get_bits', 0xA0, 0, 13, 1, 2, 1),
     'L_TX2_POWER_HIGH_WARN':   (1, 'get_bits', 0xA0, 0, 13, 1, 1, 1),
     'L_TX2_POWER_LOW_WARN':    (1, 'get_bits', 0xA0, 0, 13, 1, 0, 1),
 
     'L_TX3_TX4_POWER': (1, 'get_bits', 0xA0, 0, 14, 1, 7, 8),  # 8 POWER bits
+    'L_TX3_POWER':  (1, 'get_bits', 0xA0, 0, 14, 1, 7, 4),  # TX3 POWER bits
     'L_TX3_POWER_HIGH_ALARM':  (1, 'get_bits', 0xA0, 0, 14, 1, 7, 1),
     'L_TX3_POWER_LOW_ALARM':   (1, 'get_bits', 0xA0, 0, 14, 1, 6, 1),
     'L_TX3_POWER_HIGH_WARN':   (1, 'get_bits', 0xA0, 0, 14, 1, 5, 1),
     'L_TX3_POWER_LOW_WARN':    (1, 'get_bits', 0xA0, 0, 14, 1, 4, 1),
+    'L_TX4_POWER':  (1, 'get_bits', 0xA0, 0, 14, 1, 3, 4),  # TX4 POWER bits
     'L_TX4_POWER_HIGH_ALARM':  (1, 'get_bits', 0xA0, 0, 14, 1, 3, 1),
     'L_TX4_POWER_LOW_ALARM':   (1, 'get_bits', 0xA0, 0, 14, 1, 2, 1),
     'L_TX4_POWER_HIGH_WARN':   (1, 'get_bits', 0xA0, 0, 14, 1, 1, 1),

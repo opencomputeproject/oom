@@ -71,6 +71,11 @@ def oom_get_keyvalue(port, key):
     return oomlib.oom_get_keyvalue(port, key)
 
 
+def oom_get_keyvalue_cached(port, key):
+    return oomlib.oom_get_keyvalue_cached(port, key)
+
+
+#
 #
 # Set a key to chosen value (write value to EEPROM)
 # Be careful with this, this is likely to change the function
