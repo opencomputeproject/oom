@@ -59,7 +59,7 @@ MODULEDIR   = $(abspath ./module_data)
 PROJECT_STAMP = $(STAMPDIR)/stamp-project
 project-stamp: $(PROJECT_STAMP)
 $(PROJECT_STAMP):
-	$(Q) mkdir -pv $(LIBDIR) $(STAMPDIR) $(MODULEDIR)
+	$(Q) mkdir -pv $(LIBDIR) $(STAMPDIR)
 	$(Q) touch $@
 
 MOD_INTERNAL_STAMP = $(STAMPDIR)/internal-stamp
@@ -130,17 +130,18 @@ test-data: $(MOD_DATA_STAMP)
 $(MOD_DATA_STAMP): $(PROJECT_STAMP)
 	$(Q) rm -f $@
 	$(Q) echo "==== Copying Module Data ===="
-	$(Q) cp MUP0WB0_EEPROM_20160108_192637.txt $(MODULEDIR)/0.A0
-	$(Q) cp MUP0WB0_FCCABY_20160108_192637.txt $(MODULEDIR)/0.pages
-	$(Q) cp MUQ1BZB_EEPROM_20160108_192514.txt $(MODULEDIR)/2.A0
-	$(Q) cp MUQ1BZB_FCCABY_20160108_192514.txt $(MODULEDIR)/2.pages
-	$(Q) cp qsfpdatafile.txt $(MODULEDIR)/5.A0
-	$(Q) cp qsfp28datafile.txt $(MODULEDIR)/4.A0
+	$(Q) cp $(MODULEDIR)/MUP0WB0_EEPROM_20160108_192637.txt $(MODULEDIR)/0.A0
+	$(Q) cp $(MODULEDIR)/MUP0WB0_FCCABY_20160108_192637.txt $(MODULEDIR)/0.pages
+	$(Q) cp $(MODULEDIR)/MUQ1BZB_EEPROM_20160108_192514.txt $(MODULEDIR)/2.A0
+	$(Q) cp $(MODULEDIR)/MUQ1BZB_FCCABY_20160108_192514.txt $(MODULEDIR)/2.pages
+	$(Q) cp $(MODULEDIR)/qsfpdatafile.txt $(MODULEDIR)/5.A0
+	$(Q) cp $(MODULEDIR)/qsfp28datafile.txt $(MODULEDIR)/4.A0
 	$(Q) touch $@
 
 clean:
-	$(Q) rm -rf $(MODULEDIR) $(LIBDIR) $(STAMPDIR)
+	$(Q) rm -rf $(LIBDIR) $(STAMPDIR)
 	$(Q) rm -f *.pyc *.o oomsouth_driver.exe
+	$(Q) rm -f $(MODULEDIR)/*.A0 $(MODULEDIR)/*.pages
 	$(Q) echo "=== Finished making $@ ==="
 
 .PHONY: $(PHONY)

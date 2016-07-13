@@ -15,7 +15,7 @@ If -f is not specified, print to stdout
 """
 
 from oom import *
-from decode import hexstr, mod_id
+from oom.decode import hexstr, mod_id
 from datetime import datetime
 import sys
 

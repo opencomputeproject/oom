@@ -15,7 +15,7 @@
 # ////////////////////////////////////////////////////////////////////
 
 from oom import *                   # the published OOM Northbound API
-from decode import hexstr           # helper function from the decode pack
+from oom.decode import hexstr           # helper function from the decode pack
 
 
 portlist = oom_get_portlist()

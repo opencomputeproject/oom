@@ -14,8 +14,8 @@
 # ////////////////////////////////////////////////////////////////////
 
 from oom import *                   # the published OOM Northbound API
-from oomlib import type_to_str
-from decode import hexstr           # helper function from the decode pack
+from oom.oomlib import type_to_str
+from oom.decode import hexstr           # helper function from the decode pack
 from time import sleep
 import sys
 

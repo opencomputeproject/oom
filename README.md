@@ -9,7 +9,67 @@ port of a switch.  In addition to key/value read access, the OOM
 project also supports key/value write to a limited number of EEPROM
 locations, and raw read/write access directly to EEPROM.
 
-NEWS:  February 16, 2016
+NEWS: July 13, 2016
+
+   Updated the version of OOM to 0.4, LOTS of improvements have gone in
+   since the last version update.  The most recent change, which triggered
+   the version roll, is a reorganization to the code, and a code cleanup
+   which allows OOM to be installed as a site-specific python package.
+
+   As of Version 0.4, there is a test directory, for scripts which test
+   the OOM code.  There is an apps directory for scripts which provide 
+   useful user output from OOM or otherwise call on OOM but are not
+   part of the package API.  The data files which drive the simulator 
+   SHIM have been moved to the module_data directory.  The remaining files
+   in the oom directory are the core OOM library modules, plus the SHIMs 
+   and make files to assemble OOM.  (The SHIMs may be factored out as well
+   in a future version.)
+
+   OOM can now be installed as a package.  In the top level oom directory
+   there is a setup.py script.  AFTER building oom with the desired SHIM,
+   oom can be installed with 'python setup.py install'.  Building the 
+   appropriate SHIM (simulator(file), aardvark, or the one that matches
+   the NOS on which it is installed), must be done first, so that the SHIM
+   will be installed with the package.  Note that only the OOM API is
+   installed as a package.  The test and apps directories contain scripts
+   that can be run from anywhere, but are not installed as part of the
+   package.  
+
+   There are many ways to acquire and install OOM, but this recipe is
+   known to work in the Cygwin environment, to install the simulator SHIM:
+	cd <where you want to stage oom>
+	mkdir myoom
+	cd myoom
+	git clone https://github.com/ocpnetworking-wip/oom.git
+	cd oom/oom
+	make SHIM=file all
+	cd ..
+	python setup.py install   # installation is complete
+	cd apps
+	python inventory.py   # shows simulated switch:  SFP, QSFP+, QSFP28
+
+    OOM can also be built for use in a native Windows environment.  The 
+    recipe depends on use of the x86_64-w64-mingw32-gcc compiler, and has
+    only been used in a Cygwin environment.  This recipe builds with the 
+    Aardvark SHIM, for testing devices with an Aardvark USB/i2c adapter.
+    If you are using this environment, contact Don (don@thebollingers.org)
+    for additional support and documentation.
+    The recipe:
+	cd <where you want to stage oom>
+	mkdir myoom
+	cd myoom
+	git clone https://github.com/ocpnetworking-wip/oom.git
+	cd oom/oom
+	make -f makewindows
+	<build a ZIP file containing everything in myoom/oom>
+	<move the ZIP file to the target Windows system>
+	<unpack the ZIP file into the desired Windows folder>
+	python setup.py install  # installation is complete
+	cd apps
+	python inventory.py  # shows Aardvark accessible device(s)
+
+
+Old News:  February 16, 2016
 
    The Master branch has been updated with the latest work:
      - Added table drive oom_set_keyvalue()
@@ -27,8 +87,6 @@ NEWS:  February 16, 2016
 
 Old News: Feb 11
 
-   Gravitational waves detected at LIGO. A big day for physics!
-
    The new Southbound API is now committed to the master branch, 
    and should be considered accepted for development going forward.
 
@@ -41,55 +99,29 @@ Old News: Feb 11
 
 More mundane stuff...
 
-Installation has not yet been worked on seriously.  However, this
-project should work if all of the \*.py modules are installed in a
-location accessible to your python interpreter, AND an appropriate
-"Southbound Shim" is also provided in the same location the python
-modules are installed.  The Southbound Shim should be a C library
-which uses suitable APIs for the host switch/NOS to provide the
-necessary (discovery, read, write) functions to the OOM library.
-
-Note to shim implementers:  The Southbound API is defined in
-oom_south.h
-
-After fetching the code to a clean directory on your machine, you 
-can try 'py setup.py', it has been known to work in a simulated
-environment.
-
 There is a mock Southbound Shim, oom_south.c, among the python modules.
-There is also a make file, which works in the simulated environment,
-but probably does not work unchanged in a real linux environment.
 This make file builds the mock shim, installs it, and also installs
 some data files with static but real data for some modules.
 
 The user accessible functions are all in oom.py, which constitutes the
 "Northbound Interface".  The use of all of these functions is shown
-in oomdemo.py.  oomdemo.py is very short, demonstrating not only the
-functionality, but the simplicity of the interface.
+in oomdemo.py <now in the apps directory>.  oomdemo.py is very short, 
+demonstrating not only the functionality, but the simplicity of the
+interface.
 
+<Now in the test directory...>
 keytest.py extracts and displays every key available for SFP modules,
 as well as the key collections (functions) available.  
 
 qtest.py extracts and displays every key available for QSFP+ modules,
 as well as the key collections (functions) available.  
 
-In a Cygwin environment on a Windows PC, you can:
-
-Checkout these files into a clean directory
-run 'make'
-
-py oomdemo.py   # runs the demo
-py keytest.py   # demonstrates the SFP keys available
-py qtest.py     # demonstrates the QSFP+ keys available
-oomsouth_driver.exe     # runs C code to exercise the Southbound shim
-
 The build process assumes your C compiler builds libraries that your 
 Python interpereter can run!
 
-Note in the makefile the process to create the module_data directory and
-populate it with data with the correct names.  Substitute different 
-source files, or give these different numbers in the first character
-to populate different ports with different data.  Note that port 3 is 
-hardwired for now to CFP, with limited support.
+Note in the makefile the process to populate the module_data directory 
+with data with the correct names.  Substitute different source files, 
+or give these different numbers in the first character to populate 
+different ports with different data.
 
-Questions?  Please contact don@thebollingers.or
+Questions?  Please contact don@thebollingers.org

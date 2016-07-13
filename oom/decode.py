@@ -79,7 +79,7 @@ def get_power(x):   # return in mW
 
 
 def mwtodbm(x):
-    if x < .001 :
+    if x < .001:
         return -30  # by convention, -30dbm is the lowest legal value
     return 10 * log10(x)
 

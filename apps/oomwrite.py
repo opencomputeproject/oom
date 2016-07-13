@@ -1,7 +1,7 @@
 #! /usr/bin/python
 
 from oom import *
-from oomlib import type_to_str
+from oom.oomlib import type_to_str
 import sys
 
 

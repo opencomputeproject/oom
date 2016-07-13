@@ -5,7 +5,7 @@
 # OOM script to inventory the modules in a switch
 #
 from oom import *
-from oomlib import type_to_str
+from oom.oomlib import type_to_str
 
 formatstr = '%-10s %-16s %-13s %-16s %-16s'
 print
