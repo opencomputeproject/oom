@@ -37,6 +37,7 @@ NEWS: July 13, 2016
 
    There are many ways to acquire and install OOM, but this recipe is
    known to work in the Cygwin environment, to install the simulator SHIM:
+   
 	cd <where you want to stage oom>
 	mkdir myoom
 	cd myoom
@@ -48,13 +49,13 @@ NEWS: July 13, 2016
 	cd apps
 	python inventory.py   # shows simulated switch:  SFP, QSFP+, QSFP28
 
-    OOM can also be built for use in a native Windows environment.  The 
-    recipe depends on use of the x86_64-w64-mingw32-gcc compiler, and has
-    only been used in a Cygwin environment.  This recipe builds with the 
-    Aardvark SHIM, for testing devices with an Aardvark USB/i2c adapter.
-    If you are using this environment, contact Don (don@thebollingers.org)
-    for additional support and documentation.
-    The recipe:
+   OOM can also be built for use in a native Windows environment.  The 
+   recipe depends on use of the x86_64-w64-mingw32-gcc compiler, and has
+   only been used in a Cygwin environment.  This recipe builds with the 
+   Aardvark SHIM, for testing devices with an Aardvark USB/i2c adapter.
+   If you are using this environment, contact Don (don@thebollingers.org)
+   for additional support and documentation. The recipe:
+    
 	cd <where you want to stage oom>
 	mkdir myoom
 	cd myoom
