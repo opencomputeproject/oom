@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 setup(
     name="oom",
-    version="0.4",
+    version="0.5",
     description="Open Optical Monitoring",
     url="https://github.com/ocpnetworking-wip/oom.git",
     author="Don Bollinger",

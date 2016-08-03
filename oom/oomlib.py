@@ -18,6 +18,7 @@ from ctypes import *
 import importlib
 import glob
 import sys
+from oomtypes import c_port_t
 
 
 #
@@ -81,13 +82,20 @@ port_class_e = {
     'CFP': 0x02
     }
 
+
 #
 # link in the southbound shim
 # note this means the southbound shim MUST be installed in
 # this location (relative to this module, in lib, named oom_south.so)
 #
+class oomsth:
+    shim = ''
+    ispy = False
+
+
+oomsth = oomsth()
 packagedir = os.path.normpath(os.path.dirname(os.path.realpath(__file__)))
-oomsouth = cdll.LoadLibrary(os.path.join(packagedir, 'lib', 'oom_south.so'))
+oomsth.shim = cdll.LoadLibrary(os.path.join(packagedir, 'lib', 'oom_south.so'))
 
 # The simulator shim needs to know where the package is installed,
 # to find the module data, the Aardvark shim needs to know where
@@ -95,7 +103,7 @@ oomsouth = cdll.LoadLibrary(os.path.join(packagedir, 'lib', 'oom_south.so'))
 # part of the Southbound API, so we'll try it.  If it doesn't work,
 # skip it, the shim must not need the info
 try:
-    oomsouth.setpackagepath(packagedir)
+    oomsth.shim.setpackagepath(packagedir)
 except:
     pass
 
@@ -142,13 +150,14 @@ for module in modulist:
 sys.path = sys.path[1:]  # put the search path back
 
 
-#
-# This class recreates the port structure in the southbound API
-#
-class c_port_t(Structure):
-    _fields_ = [("handle", c_void_p),
-                ("oom_class", c_int),
-                ("name", c_ubyte * 32)]
+def setshim(newshim, parms):
+    try:
+        oomsth.shim = importlib.import_module(newshim)
+    except:
+        oomsth.shim = importlib.import_module('oom.' + newshim)
+    oomsth.ispy = True
+    if parms is not None:
+        oomsth.shim.setparms(parms)
 
 
 # This class is the python port, which includes the C definition
@@ -211,7 +220,7 @@ def oom_get_port(n):
 # of the port_t structure.  Allocate the memory here.
 #
 def oom_get_portlist():
-    numports = oomsouth.oom_get_portlist(0, 0)
+    numports = oomsth.shim.oom_get_portlist(0, 0)
     if numports < 0:
         raise RuntimeError("oom_get_portlist error: %d" % numports)
     elif numports == 0:
@@ -219,7 +228,7 @@ def oom_get_portlist():
 
     cport_array = c_port_t * numports
     cport_list = cport_array()
-    retval = oomsouth.oom_get_portlist(cport_list, numports)
+    retval = oomsth.shim.oom_get_portlist(cport_list, numports)
     portlist = [Port(cport) for cport in cport_list]
     return portlist
 
@@ -276,8 +285,18 @@ def oom_get_cached_sff(port, address, page, offset, length):
 def oom_get_memory_sff(port, address, page, offset, length):
     data = create_string_buffer(length)  # allocate space
     port.readcount = port.readcount + 1
-    retlen = oomsouth.oom_get_memory_sff(byref(port.c_port), address,
-                                         page, offset, length, data)
+    #
+    # hack: if oomsouth is the python version, I can't figure out how to
+    # deal with a byref() pointer, so I pass the c_port rather than the
+    # pointer to it.  Fixing this hack would make me happy.
+    # Fix it in oom_set_memory_sff too!
+    #
+    if oomsth.ispy:
+        retlen = oomsth.shim.oom_get_memory_sff(port.c_port, address,
+                                                page, offset, length, data)
+    else:
+        retlen = oomsth.shim.oom_get_memory_sff(byref(port.c_port), address,
+                                                page, offset, length, data)
     return(data)
 
 
@@ -285,13 +304,16 @@ def oom_get_memory_sff(port, address, page, offset, length):
 # Raw write
 #
 def oom_set_memory_sff(port, address, page, offset, length, data):
-    # data = create_string_buffer(length)   # allocate space
     pagekey = page
     if offset < 128:
         pagekey = -1
     port.invalidate_page(address, pagekey)  # force re-read after write
-    retlen = oomsouth.oom_set_memory_sff(byref(port.c_port), address,
-                                         page, offset, length, data)
+    if oomsth.ispy:
+        retlen = oomsth.shim.oom_set_memory_sff(port.c_port, address,
+                                                page, offset, length, data)
+    else:
+        retlen = oomsth.shim.oom_set_memory_sff(byref(port.c_port), address,
+                                                page, offset, length, data)
     return retlen
 
 

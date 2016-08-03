@@ -16,7 +16,16 @@
 
 from oom import *                   # the published OOM Northbound API
 from oom.decode import hexstr           # helper function from the decode pack
+import sys
 
+
+parms = sys.argv
+if len(parms) > 1:
+    shimparm = None
+    if len(parms) > 2:
+        shimparm = parms[2]
+    print 'setting shim to %s.py (%s)' % (parms[1], shimparm)
+    oomlib.setshim(parms[1], shimparm)
 
 portlist = oom_get_portlist()
 for port in portlist:
