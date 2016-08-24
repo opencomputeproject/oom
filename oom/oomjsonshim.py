@@ -26,7 +26,15 @@ url = url()
 
 
 def setparms(parms):
-    url.remote = parms
+    temp = parms
+    portplus = ':5000/OOM'
+    if temp[-9:] != portplus:
+        temp = temp + portplus
+    preamble = 'http://'
+    if temp[:7] != preamble:
+        temp = preamble + temp
+    print 'Using URL: %s' % temp
+    url.remote = temp
 
 
 #
