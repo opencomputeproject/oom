@@ -8,7 +8,7 @@
 #
 # Builds the Common Module Interface library
 #
-# make [SHIM={file, ethtool, aardvark}] [V=] <target>
+# make [SHIM={file, ethtool, aardvark, sysfs}] [V=] <target>
 # -> Select the SHIM you want, default is 'file'
 # -> V is for verbose.  If V is not zero, makefile is verbose.
 #
@@ -73,9 +73,9 @@ MOD_DATA_STAMP     = $(STAMPDIR)/data-stamp
 SHIM      ?= file
 
 # Verify shim type
-ifneq ($(filter-out file ethtool aardvark, $(SHIM)),)
+ifneq ($(filter-out file ethtool aardvark sysfs, $(SHIM)),)
     $(warning Unsupported southbound interface: $(SHIM))
-    $(error Supported interfaces: file ethtool aardvark)
+    $(error Supported interfaces: file ethtool aardvark sysfs)
 endif
 
 
