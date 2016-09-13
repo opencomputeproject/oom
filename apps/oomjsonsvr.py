@@ -156,4 +156,7 @@ class portlist:
 portlist = portlist()
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    # to debug locally use:
+    # app.run(debug=True)
+    # to be visible across the network, use:
+    app.run(host='0.0.0.0')
