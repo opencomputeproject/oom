@@ -416,3 +416,18 @@ def set_bits(current, new, offset, numbits):
     retval = create_string_buffer(1)
     retval[0] = chr(newval)
     return retval
+
+
+# turn a temperature (floating point python) into a 2 byte module
+# temperature.  [Reverses the calculations of get_temperature()]
+def set_temperature(current, new):
+    if len(current) != 2:
+        print "wrong temperature format"
+        return
+    retval = create_string_buffer(2)
+    temp = new * 256.0
+    if temp < 0:
+        temp += 65536
+    retval[0] = chr(int(temp / 256))
+    retval[1] = chr(int(temp % 256))
+    return retval
