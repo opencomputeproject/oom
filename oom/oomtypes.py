@@ -19,3 +19,12 @@ class c_port_t(Structure):
     _fields_ = [("handle", c_void_p),
                 ("oom_class", c_int),
                 ("name", c_ubyte * 32)]
+
+# Southbound API will report the 'class' of a module, basically
+# whether it uses i2c addresses, pages, and bytes (SFF) or
+# it uses mdio, a flat 16 bit address space, and words (CFP)
+port_class_e = {
+    'UNKNOWN': 0x00,
+    'SFF': 0x01,
+    'CFP': 0x02
+    }

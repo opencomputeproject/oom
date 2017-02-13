@@ -19,6 +19,7 @@ import importlib
 import glob
 import sys
 from oomtypes import c_port_t
+from oomtypes import port_class_e
 
 
 #
@@ -71,15 +72,6 @@ port_type_e = {
 
     'INVALID': -1,
     'NOT_PRESENT': -2,
-    }
-
-# Southbound API will report the 'class' of a module, basically
-# whether it uses i2c addresses, pages, and bytes (SFF) or
-# it uses mdio, a flat 16 bit address space, and words (CFP)
-port_class_e = {
-    'UNKNOWN': 0x00,
-    'SFF': 0x01,
-    'CFP': 0x02
     }
 
 
