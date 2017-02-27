@@ -76,18 +76,37 @@ port_type_e = {
 
 
 #
+# load a python module as the southbound shim
+#
+def setshim(newshim, parms):
+    try:
+        oomsth.shim = importlib.import_module(newshim)
+    except:
+        oomsth.shim = importlib.import_module('oom.' + newshim)
+    oomsth.ispy = True
+    if parms is not None:
+        oomsth.shim.setparms(parms)
+
+
+#
 # link in the southbound shim
 # note this means the southbound shim MUST be installed in
 # this location (relative to this module, in lib, named oom_south.so)
+# or, if there is no oom_south.so, then use oomsysfsshim.py
 #
-class oomsth:
+class oomsth_c:
     shim = ''
     ispy = False
 
 
-oomsth = oomsth()
+oomsth = oomsth_c()
 packagedir = os.path.normpath(os.path.dirname(os.path.realpath(__file__)))
-oomsth.shim = cdll.LoadLibrary(os.path.join(packagedir, 'lib', 'oom_south.so'))
+
+try:
+    oomsth.shim = cdll.LoadLibrary(
+                    os.path.join(packagedir, 'lib', 'oom_south.so'))
+except:
+    setshim("oomsysfsshim", None)
 
 # The simulator shim needs to know where the package is installed,
 # to find the module data, the Aardvark shim needs to know where
@@ -140,16 +159,6 @@ for module in modulist:
             # skip that one ('add_features' is not there?)
             pass
 sys.path = sys.path[1:]  # put the search path back
-
-
-def setshim(newshim, parms):
-    try:
-        oomsth.shim = importlib.import_module(newshim)
-    except:
-        oomsth.shim = importlib.import_module('oom.' + newshim)
-    oomsth.ispy = True
-    if parms is not None:
-        oomsth.shim.setparms(parms)
 
 
 # This class is the python port, which includes the C definition

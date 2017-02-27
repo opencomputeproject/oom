@@ -246,7 +246,7 @@ int oom_get_memory_sff(oom_port_t* port, int address, int page,
 	offs = offset;
 	switch (parms.style) {
 	    case STYLE_CUMULUS :
-		/* generate the name of the actuall eeprom file */
+		/* generate the name of the actual eeprom file */
 		sprintf(fpath, "%s/%s/device/eeprom", parms.eeprom_dir, 
 			port_filename[(intptr_t)port->handle]);
 
