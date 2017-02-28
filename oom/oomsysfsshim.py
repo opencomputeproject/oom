@@ -11,7 +11,6 @@
 #
 # ////////////////////////////////////////////////////////////////////
 
-# import base64
 from oomtypes import c_port_t
 from oomtypes import port_class_e
 from ctypes import create_string_buffer
@@ -208,7 +207,7 @@ def gethandle(cport):
 #
 # common code between oom_{get, set}_memory_sff
 #
-def open_and_seek(cport, address, page, offset):
+def open_and_seek(cport, address, page, offset, flag):
     # sanity check
     if (address < 0xA0) or (address == 0xA1) or (address > 0xA2):
         return -errno.EINVAL
@@ -218,7 +217,7 @@ def open_and_seek(cport, address, page, offset):
     portdir = allports.portdir_list[handle]
     eeprompath = paths.root + portdir + paths.eeprom
     try:
-        fp = open(eeprompath, 'rb+', 0)
+        fp = open(eeprompath, flag, 0)
     except IOError, err:
         return -err.errno
 
@@ -248,7 +247,7 @@ def oom_get_memory_sff(cport, address, page, offset, length, data):
 
     if length != len(data):
         return -errno.EINVAL
-    fd = open_and_seek(cport, address, page, offset)
+    fd = open_and_seek(cport, address, page, offset, 'rb')
     if (fd < 0):
         return fd
 
@@ -273,7 +272,7 @@ def oom_set_memory_sff(cport, address, page, offset, length, data):
 
     if length > len(data):
         return -errno.EINVAL
-    fd = open_and_seek(cport, address, page, offset)
+    fd = open_and_seek(cport, address, page, offset, 'rb+')
     if (fd < 0):
         return fd
 
