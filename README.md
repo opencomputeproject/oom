@@ -1,5 +1,5 @@
 # oom
-Open Optical Monitoring - http://www.opencompute.org/wiki/Networking/SpecsAndDesigns#Common_Module_Interface
+Open Optical Monitoring - http://www.opencompute.org/wiki/Networking/SpecsAndDesigns#Open_Optical_Monitoring
 
 This is a project to make the contents of optical module EEPROM
 accessible to python programmers.  This allows a python programmer
