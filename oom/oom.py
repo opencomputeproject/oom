@@ -100,7 +100,6 @@ def oom_get_memory(port, function):
 #   page: page of the data.  NOT USED if offset < 128
 #   offset: byte address within the page
 #   length: number of bytes to read
-# TODO - throw an exception if len != length
 #
 def oom_get_memory_sff(port, address, page, offset, length):
     return oomlib.oom_get_memory_sff(port, address, page, offset, length)
@@ -126,3 +125,29 @@ def oom_get_cached_sff(port, address, page, offset, length):
 # oom_set_memory_sff invalidates the page cache for the page written to
 def oom_set_memory_sff(port, address, page, offset, length, data):
     return oomlib.oom_set_memory_sff(port, address, page, offset, length, data)
+
+
+#
+# fetch raw data from CFP type memory.
+#   port: an OOM port from oom_get_portlist()
+#   address: WORD address in the EEPROM
+#   length: number of WORDS to read
+#
+def oom_get_memory_cfp(port, address, length):
+    return oomlib.oom_get_memory_cfp(port, address, length)
+
+
+#
+# same as oom_get_memory_cfp except uses a page cache.
+#   (OOM does not cache CFP at this time)
+#
+def oom_get_cached_cfp(port, address, length):
+    return oomlib.oom_get_cached_cfp(port, address, length)
+
+
+#
+# write raw memory to CFP EEPROM
+# parameters are the same as oom_get_memory_cfp
+# with the addition of 'data', which is a byte array of the data to be written
+def oom_set_memory_cfp(port, address, length, data):
+    return oomlib.oom_set_memory_cfp(port, address, length, data)

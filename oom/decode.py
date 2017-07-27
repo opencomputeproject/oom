@@ -117,6 +117,10 @@ def get_string(x):  # copy the cbuffer into a string
     return result
 
 
+def set_string(old, new):  # trivial, but needed for oom_set_keyvalue()
+    return new
+
+
 def mod_id(x):  # return Module ID
     if len(x) != 1:
         print "wrong identifier format"
@@ -375,6 +379,33 @@ def hexstr(x):
         result += hex(ord(i))
         result += ' '
     return result
+
+
+# CFP/MDIO likes to use only the low byte of each word.  This function
+# squeezes out the zeros in the upper bytes.
+def collapse_cfp(data):
+    if len(data) < 2:
+        return ''
+    newdata = create_string_buffer(len(data)/2)
+    i = 0
+    for c in data:
+        if (i % 2) == 1:
+            newdata[i/2] = c
+        i += 1
+    return newdata
+
+
+# This routine should exactly undo collapse_cfp
+# (except, expand_cfp(collapse_cfp(string)) will delete the last byte
+# if string is of odd length)
+def expand_cfp(data):
+    newdata = create_string_buffer(len(data)*2)
+    i = 0
+    for c in data:
+        newdata[i*2] = '\0'
+        newdata[i*2+1] = c
+        i += 1
+    return newdata
 
 
 # Note that set_int returns a 'C string' suitable for oom_set_memory_sff

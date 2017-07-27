@@ -20,6 +20,8 @@ import glob
 import sys
 from oomtypes import c_port_t
 from oomtypes import port_class_e
+from decode import collapse_cfp
+from decode import expand_cfp
 
 
 #
@@ -241,9 +243,12 @@ def get_port_type(port):
     if port.c_port.oom_class == port_class_e['SFF']:
         data = oom_get_cached_sff(port, 0xA0, 0, 0, 1)
         ptype = ord(data[0])
-        return(ptype)
-    # TODO: get type for CFP modules, requires oom_get_memory_cfp()
-    ptype = port_type_e['UNKNOWN']
+    elif port.c_port.oom_class == port_class_e['CFP']:
+        data = oom_get_memory_cfp(port, 0x8000, 1)
+        # CFP types overlap with i2c types, so OOM adds 0x100 to disambiguate
+        ptype = ord(data[1]) + 0x100
+    else:
+        ptype = port_type_e['UNKNOWN']
     return (ptype)
 
 
@@ -318,19 +323,59 @@ def oom_set_memory_sff(port, address, page, offset, length, data):
     return retlen
 
 
+#
+# CFP version of get_cached...
+# for now, don't cache, just fetch everything, everytime
+# because, unlike i2c devices, there is no natural page boundary for
+# cache lines
+#
+def oom_get_cached_cfp(port, offset, length):
+    return oom_get_memory_cfp(port, offset, length)
+
+
+#
+# CFP version of get_memory_*
+# REMEMBER!  address and length are in words, not bytes
+# Allocate the memory for raw reads, return the data cleanly
+#
+def oom_get_memory_cfp(port, address, length):
+    data = create_string_buffer(length*2)  # allocate space in bytes
+    port.readcount = port.readcount + 1
+    retlen = oomsth.shim.oom_get_memory_cfp(port.c_port, address, length, data)
+    return(data)
+
+
+#
+# Raw write
+#
+def oom_set_memory_cfp(port, address, length, data):
+    retlen = oomsth.shim.oom_set_memory_cfp(port.c_port, address, length, data)
+    return retlen
+
+
 # for given port, return the value of the given key
 def oom_get_keyvalue(port, key):
-    mm = port.mmap
+    mm = port.mmap                            # get the keys and memory map
     if key not in mm:
         return ''
-    par = (port,) + mm[key][2:6]              # get the location
-    if mm[key][0] == 0:                       # static data, use cache
-        raw_data = oom_get_cached_sff(*par)   # get the cached data
-    else:
-        raw_data = oom_get_memory_sff(*par)   # get the fresh data
-    decoder = getattr(decodelib, mm[key][1])  # get the decoder
-    par = mm[key][6:]                         # extra decoder parms
-    temp = decoder(raw_data, *par)            # get the value
+    decoder = getattr(decodelib, mm[key][1])      # get the decoder
+    if port.c_port.oom_class == port_class_e['SFF']:
+        par = (port,) + mm[key][2:6]              # get the location
+        if mm[key][0] == 0:                       # static data, use cache
+            raw_data = oom_get_cached_sff(*par)   # get the cached data
+        else:
+            raw_data = oom_get_memory_sff(*par)   # get the fresh data
+        par = mm[key][6:]                         # extra decoder parms
+    elif port.c_port.oom_class == port_class_e['CFP']:
+        par = (port,) + mm[key][3:5]              # get the location
+        if mm[key][0] == 0:                       # static data, use cache
+            raw_data = oom_get_cached_cfp(*par)   # get the cached  data
+        else:
+            raw_data = oom_get_memory_cfp(*par)   # get the fresh data
+        if mm[key][2] == 1:                       # collapse CFP zeros out
+            raw_data = collapse_cfp(raw_data)
+        par = mm[key][5:]                         # extra decoder parms
+    temp = decoder(raw_data, *par)                # get the value
     return temp
 
 
@@ -341,11 +386,18 @@ def oom_get_keyvalue_cached(port, key):
     mm = port.mmap
     if key not in mm:
         return ''
-    par = (port,) + mm[key][2:6]              # get the location
-    raw_data = oom_get_cached_sff(*par)       # get the cached data
-    decoder = getattr(decodelib, mm[key][1])  # get the decoder
-    par = mm[key][6:]                         # extra decoder parms
-    temp = decoder(raw_data, *par)            # get the value
+    decoder = getattr(decodelib, mm[key][1])      # get the decoder
+    if port.c_port.oom_class == port_class_e['SFF']:
+        par = (port,) + mm[key][2:6]              # get the location
+        raw_data = oom_get_cached_sff(*par)       # get the cached data
+        par = mm[key][6:]                         # extra decoder parms
+    elif port.c_port.oom_class == port_class_e['CFP']:
+        par = (port,) + mm[key][3:5]              # get the location
+        raw_data = oom_get_cached_cfp(*par)       # get the fresh data
+        if mm[key][2] == 1:                       # collapse CFP zeros out
+            raw_data = collapse_cfp(raw_data)
+        par = mm[key][5:]                         # extra decoder parms
+    temp = decoder(raw_data, *par)                # get the value
     return temp
 
 
@@ -357,13 +409,22 @@ def oom_set_keyvalue(port, key, value):
         return -1
     if key not in wm:
         return -1
-    par = (port,) + mm[key][2:6]     # get the read parameters
-    raw_data = oom_get_memory_sff(*par)    # get the current data
     encoder = getattr(decodelib, wm[key])  # find the encoder
-    par = mm[key][6:]
-    temp = encoder(raw_data, value, *par)  # stuff value into raw_data
-    retval = oom_set_memory_sff(port, mm[key][2], mm[key][3], mm[key][4],
-                                mm[key][5], temp)
+    if port.c_port.oom_class == port_class_e['SFF']:
+        par = (port,) + mm[key][2:6]           # get the read parameters
+        raw_data = oom_get_memory_sff(*par)    # get the current data
+        par = mm[key][6:]                      # extra decoder parms
+        temp = encoder(raw_data, value, *par)  # stuff value into raw_data
+        retval = oom_set_memory_sff(port, mm[key][2], mm[key][3], mm[key][4],
+                                    mm[key][5], temp)
+    elif port.c_port.oom_class == port_class_e['CFP']:
+        par = (port,) + mm[key][3:5]           # get the location
+        raw_data = oom_get_memory_cfp(*par)    # get the current data
+        par = mm[key][5:]                      # extra decoder parms
+        temp = encoder(raw_data, value, *par)  # stuff value into raw_data
+        if mm[key][2] == 1:                    # expand with zeros for CFP
+            temp = expand_cfp(temp)
+        retval = oom_set_memory_cfp(port, mm[key][3], mm[key][4], temp)
     return retval
 
 

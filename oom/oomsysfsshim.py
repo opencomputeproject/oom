@@ -23,26 +23,25 @@ import os
 #
 class paths_class:
     def __init__(self):
-        # styles define where to find the eeprom data
-        # Fields are the directory path, the name of the file containing
-        # the name of the port, and the path to the EEPROM file
-        #
-        # The first style here matches Cumulus, the second is ONL
-        self.styles = [
-            ['/sys/class/eeprom_dev/', '/label', '/device/eeprom'],
-            ['/sys/bus/i2c/devices/', '/sfp_port_number', '/sfp_eeprom'],
-                 ]
-        # (kludge) code below depends on Cumulus as style 0, ONL as style 1
-        self.style = -1
+        # Different ways to find the optical devices.  Each has a directory
+        # path, a place to find the name of the port, and the location
+        # of the EEPROM data file
+        # Note that special code below is part of the discovery and
+        # recognition process for each style of device naming
+        self.locs = {
+            'ACCTON': ('/sys/bus/i2c/devices/',
+                       '/sfp_port_number',
+                       '/sfp_eeprom'),
+            'EEPROM': ('/sys/class/eeprom_dev/',
+                       '/label',
+                       '/device/eeprom'),
+            'MDIO':   ('/sys/bus/mdio/devices/',
+                       '/mdio_name',
+                       '/mdio_eeprom'),
+            }
 
-    def nextstyle(self):
-        self.style += 1
-        if self.style >= len(self.styles):
-            raise Exception("Can't find EEPROM files in /sys")
-        self.root, self.name, self.eeprom = self.styles[self.style]
 
 paths = paths_class()
-
 MAXPORTS = 512
 
 
@@ -58,95 +57,84 @@ class ports:
         self.retval = 0
         cport_array = c_port_t * MAXPORTS
         self.portlist = cport_array()
-        self.portdir_list = []
 
     def initports(self):
         # fill an array of ports
         self.portcount = 0
+        self.portname_list = []
 
-        # figure out the style of /sys files.  Will break out on success.
-        while (1):
-            paths.nextstyle()   # will throw an exception when out of styles
-            try:
-                filenames = os.listdir(paths.root)
-                # for Cumulus style, confirm sfp_eeprom devices exist
-                if paths.style == 0:
-                    foundit = 0
-                    for name in filenames:
-                        eeprom = paths.root + name + paths.eeprom
-                        try:
-                            fp = open(eeprom, 'r')
-                            foundit = 1
-                            break  # confirmed Cumulus, get out of for()
-                        except:
-                            continue
-                    if foundit == 1:
-                        break   # confirmed Cumulus, get out of while(1)
-                    continue
-                break
-
-            except:  # if anything fails in this style, move to the next
+        # sequence through known styles, looking for optical devices
+        # Basically going to check every possible device, of each naming
+        # style, looking for optical devices.  Any found will be added
+        # to the portlist inventory
+        for key in paths.locs:
+            (dirpath, portpath, eepromname) = paths.locs[key]
+            try:      # See if the directory (eg /sys/bus/i2c...) exists
+                filenames = os.listdir(dirpath)
+            except:     # On error, skip to the next one
                 continue
-            break  # successfully opened the directory, use this style
-
-        #
-        # note, we now have our style set, saved in paths class
-        # next, check each name to see if it is the dir path for
-        # an optical EEPROM device.  Skip any that aren't EEPROM dirs.
-        #
-        for portdir in filenames:
-            if portdir[0] == '.':
-                continue
-
-            labelpath = paths.root + portdir + paths.name
-            if paths.style == 0:    # Cumulus style
+            for name in filenames:   # candidates...  screen them
+                eeprompath = dirpath + name + eepromname
                 try:
-                    fp = open(labelpath, 'r')
-                    portname = fp.readline()
+                    fd = open(eeprompath, 'r')
                 except:
                     continue
-                if len(portname) < 5:    # looking for 'port<num>'
-                    continue
-                if portname[0:4] != 'port':
-                    continue
-                # this is the eeprom device we are looking for
-
-            elif paths.style == 1:   # ONL style
-                # device names look like '<num>-00<addr>',
-                # eg 54-0050.  addr is the i2c address of the
-                # EEPROM.  We want only devices with addr '50'
-                if portdir[-2:] != '50':
-                    continue
-
-                # Get the port number for this eeprom
+                namepath = dirpath + name + portpath
                 try:
-                    fp = open(labelpath, 'r')
-                    slabel = fp.readline()
+                    fd = open(namepath, 'r')
+                    portlabel = fd.readline()
                 except:
                     continue
-                for i in range(len(slabel)):
-                    if slabel[i] == 0xA:
-                        slabel[i] = '\0'
-                label = int(slabel)
-                if label == 0:  # note, non-numeric labels return 0 also
-                    continue
-                portname = "port" + slabel
-                # This is the eeprom device we are looking for
 
-            newport = self.portlist[self.portcount]
-            newport.handle = self.portcount
-            newport.oom_class = port_class_e['SFF']
+                # special code for each style of naming...
+                # EEPROM is for switches that use the EEPROM class driver
+                if key is 'EEPROM':  # verify name is 'port<num>'
+                    if len(portlabel) < 5:
+                        continue
+                    if portlabel[0:4] != 'port':
+                        continue
+                    portname = portlabel
+                # ACCTON uses the i2c devices tree, filled with sfp_* files
+                elif key is 'ACCTON':
+                    # device names look like '<num>-00<addr>',
+                    # eg 54-0050.  addr is the i2c address of the
+                    # EEPROM.  We want only devices with addr '50'
+                    if name[-2:] != '50':
+                        continue
 
-            # build the name, put it into the c_port_t
-            # note the type of newport.cport.name is c_ubyte_Array_32
-            # so I can't just assign the string to newport.cport.name
-            for i in range(0, 32):
-                if i < (len(portname)-1):
-                    newport.name[i] = ord(portname[i])
+                    # Get the port number for this eeprom
+                    for i in range(len(portlabel)):
+                        if portlabel[i] == 0xA:
+                            portlabel[i] = '\0'
+                    label = int(portlabel)
+                    if label == 0:  # note, non-numeric labels return 0 also
+                        continue
+                    portname = "port" + portlabel
+                # CFP is actually unknown, so simulating simple for now
+                elif key is 'MDIO':
+                    portname = portlabel
                 else:
-                    newport.name[i] = 0
-            self.portdir_list.append(portdir)
-            self.portcount += 1
+                    raise NotImplementedError("OOM designer screwed up")
+
+                # Looks good, add this as a new port to the list
+                newport = self.portlist[self.portcount]
+                newport.handle = self.portcount
+                if key is "MDIO":
+                    newport.oom_class = port_class_e['CFP']
+                else:
+                    newport.oom_class = port_class_e['SFF']
+
+                # build the name, put it into the c_port_t
+                # note the type of newport.cport.name is c_ubyte_Array_32
+                # so I can't just assign the string to newport.cport.name
+                for i in range(0, 32):
+                    if i < (len(portname)-1):
+                        newport.name[i] = ord(portname[i])
+                    else:
+                        newport.name[i] = 0
+                self.portname_list.append(eeprompath)
+                self.portcount += 1
+            # next key
         self.shimstate = 1
         self.retval = self.portcount
         return self.retval
@@ -214,10 +202,9 @@ def open_and_seek(cport, address, page, offset, flag):
 
     # open the the EEPROM file
     handle = gethandle(cport)
-    portdir = allports.portdir_list[handle]
-    eeprompath = paths.root + portdir + paths.eeprom
+    eeprompath = allports.portname_list[handle]
     try:
-        fp = open(eeprompath, flag, 0)
+        fd = open(eeprompath, flag, 0)
     except IOError, err:
         return -err.errno
 
@@ -233,11 +220,11 @@ def open_and_seek(cport, address, page, offset, flag):
         seekto += 256
 
     try:
-        fp.seek(seekto)
+        fd.seek(seekto)
     except IOError, err:
         return -err.errno
 
-    return fp
+    return fd
 
 
 #
@@ -279,6 +266,77 @@ def oom_set_memory_sff(cport, address, page, offset, length, data):
     # and write it!
     try:
         fd.write(data[0:length])
+    except IOError, err:
+        return -err.errno
+
+    # success
+    return length
+
+
+#
+# common code between oom_{get, set}_memory_cfp
+#
+def open_and_seek_cfp(cport, address, flag):
+
+    # open the the EEPROM file
+    handle = gethandle(cport)
+    eeprompath = allports.portname_list[handle]
+    try:
+        fd = open(eeprompath, flag, 0)
+    except IOError, err:
+        return -err.errno
+
+    # seek to the addressed location
+    # note - CFP is addressed in 16 bit words, seek is addressed in 8 bit bytes
+    # hence, multiply the requested address by 2 to seek to the right place
+    try:
+        fd.seek(address * 2)
+    except IOError, err:
+        return -err.errno
+
+    return fd
+
+
+#
+# note, we are in oomsouth, so 'cport' is actually a c_port_t
+#
+def oom_get_memory_cfp(cport, address, length, data):
+
+    if length != (len(data)/2):
+        return -errno.EINVAL
+
+    fd = open_and_seek_cfp(cport, address, 'rb')
+    if (fd < 0):
+        return fd
+
+    # and read it!
+    try:
+        buf = fd.read(length * 2)
+    except IOError, err:
+        return -err.errno
+
+    # copy the buffer into the data array
+    ptr = 0
+    for c in buf:
+        data[ptr] = c
+        ptr += 1
+    return (len(data)/2)
+
+
+#
+# oom_set_memory_cfp
+#
+def oom_set_memory_cfp(cport, address, length, data):
+
+    if length > len(data)/2:
+        return -errno.EINVAL
+    fd = open_and_seek_cfp(cport, address, 'rb+')
+    if (fd < 0):
+        return fd
+
+    # and write it!
+    try:
+        fd.write(data[0:(length*2)])
     except IOError, err:
         return -err.errno
 
