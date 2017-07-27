@@ -19,6 +19,7 @@ import json
 import base64
 from oomtypes import c_port_t
 
+
 # Set the default URL for the remote switch
 class url:
     remote = "http://localhost:5000/OOM"
@@ -58,8 +59,8 @@ def oom_get_portlist(cport_list, numports):
 def oom_get_memory_sff(cport, address, page, offset, length, data):
     strport = cport_to_json(cport)
     js = requests.get(url.remote, json={'cmd': 'ogms', 'port': strport,
-                      'address': address, 'page': page, 'offset': offset,
-                      'length': length})
+                                        'address': address, 'page': page,
+                                        'offset': offset, 'length': length})
 
     py = json.loads(js.text)
     retlen = int(py['length'])
@@ -78,8 +79,9 @@ def oom_set_memory_sff(port, address, page, offset, length, data):
     strport = cport_to_json(port)
     jsdata = base64.b64encode(data)
     js = requests.get(url.remote, json={'cmd': 'osms', 'port': strport,
-                      'address': address, 'page': page, 'offset': offset,
-                      'length': length, 'data': jsdata})
+                                        'address': address, 'page': page,
+                                        'offset': offset, 'length': length,
+                                        'data': jsdata})
     py = json.loads(js.text)
     retlen = int(py['length'])
     return retlen
