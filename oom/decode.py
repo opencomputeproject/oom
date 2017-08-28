@@ -41,10 +41,24 @@ mod_id_dict = {0x00: 'Unknown',
                0x11: 'QSFP28',
                0x12: 'CXP2',
                0x13: 'CDFP',
-               0x14: 'Sheilded Mini Multilane HD 4x Fanout Calbe',
-               0x15: 'Sheilded Mini Multilane HD 8x Fanout Calbe',
+               0x14: 'Sheilded Mini Multilane HD 4x Fanout Cable',
+               0x15: 'Sheilded Mini Multilane HD 8x Fanout Cable',
                0x16: 'CDFP',
-               0x17: 'microQSFP'}
+               0x17: 'microQSFP',
+
+               # next values are CFP types. Note that their spec
+               # (CFP MSA Management Interface Specification
+               # ver 2.4 r06b page 67)
+               # values overlap with the values for i2c type devices.  OOM has
+               # chosen to add 256 (0x100) to the values to make them unique
+
+               0x10E: 'CFP',
+               0x110: '168_PIN_5X7',
+               0x111: 'CFP2',
+               0x112: 'CFP4',
+               0x113: '168_PIN_4X5',
+               0x114: 'CFP2_ACO',
+               }
 
 
 def get_voltage(x):  # return in V
@@ -122,10 +136,7 @@ def set_string(old, new):  # trivial, but needed for oom_set_keyvalue()
 
 
 def mod_id(x):  # return Module ID
-    if len(x) != 1:
-        print "wrong identifier format"
-        return
-    return mod_id_dict.get(ord(x[0]), 'Reserved')
+    return mod_id_dict.get(x, 'Reserved')
 
 
 def get_bytes(x):

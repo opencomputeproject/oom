@@ -26,7 +26,7 @@ from decode import expand_cfp
 
 #
 # Mapping of port_type numbers to user accessible names
-# This is a copy of a matching table in oom_south.h
+# This is a copy of a matching table in decode.py
 # Might be a problem keeping these in sync, but
 # these mappings are based on the relevant standards,
 # so they should be fairly stable
