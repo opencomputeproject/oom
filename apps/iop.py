@@ -67,7 +67,7 @@ def iop(port, fileflag):
     # print out the Vendor Specific data after the Serial ID data
     print
     vend_specific = ''
-    if port.port_type == 0x3:   # SFP
+    if port.port_type == 0x3 or (port.port_type == 0xB):   # SFP
         vend_specific = hexstr(oom_get_keyvalue(port, 'VENDOR_SPECIFIC_96'))
     if (port.port_type == 0xD) or (port.port_type == 0x11):  # QSFP+/QSFP28
         vend_specific = hexstr(oom_get_keyvalue(port, 'VENDOR_SPECIFIC_224'))
@@ -75,7 +75,7 @@ def iop(port, fileflag):
 
     # dump the raw data from the two most popular blocks, by type
     print
-    if port.port_type == 0x3:  # SFP
+    if port.port_type == 0x3 or (port.port_type == 0xB):  # SFP
         print 'I2C Address A0h, bytes 0-127, in hex'
         print_block_hex(oom_get_memory_sff(port, 0xA0, 0, 0, 128), 0)
         print
@@ -101,7 +101,6 @@ def iop(port, fileflag):
         else:
             valstr = str(val)
         print '%s: %s' % (key, valstr)
-
 
 
 if __name__ == "__main__":
