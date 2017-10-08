@@ -9,6 +9,14 @@ port of a switch.  In addition to key/value read access, the OOM
 project also supports key/value write to a limited number of EEPROM
 locations, and raw read/write access directly to EEPROM.
 
+NEWS:  October 8, 2017
+Beta Release of the 'optoe' driver.  Supports SFP type (SFF-8472) and
+QSFP type (SFF-8436) i2c devices, provides read/write access to all
+256 architected pages (tables) of these devices.  Driver, include file
+and brief documentation are in the 'optoe' directory.
+
+OOM has been updated to locate eeprom files and port names created by optoe.
+
 NEWS:  August 25, 2017
 Checked in a linux driver that demonstrates write capability, and the
 ability to access up to the full 128 pages architected for SFP/QSFP
