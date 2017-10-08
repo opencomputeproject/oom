@@ -29,6 +29,9 @@ class paths_class:
         # Note that special code below is part of the discovery and
         # recognition process for each style of device naming
         self.locs = {
+            'OPTOE':  ('/sys/bus/i2c/devices/',
+                       '/port_name',
+                       '/eeprom'),
             'ACCTON': ('/sys/bus/i2c/devices/',
                        '/sfp_port_number',
                        '/sfp_eeprom'),
@@ -62,6 +65,7 @@ class ports:
         # fill an array of ports
         self.portcount = 0
         self.portname_list = []
+        pyportlist = []
 
         # sequence through known styles, looking for optical devices
         # Basically going to check every possible device, of each naming
@@ -87,8 +91,23 @@ class ports:
                     continue
 
                 # special code for each style of naming...
+                # OPTOE uses an 'eeprom' file and a port name (not number)
+                if key is 'OPTOE':
+                    # device names look like '<num>-00<addr>',
+                    # eg 54-0050.  addr is the i2c address of the
+                    # EEPROM.  We want only devices with addr '50'
+                    if name[-2:] != '50':
+                        continue
+                    portname = portlabel
                 # EEPROM is for switches that use the EEPROM class driver
-                if key is 'EEPROM':  # verify name is 'port<num>'
+                elif key is 'EEPROM':  # verify name is 'port<num>'
+                    # check for two labels (optoe & EEPROM), keep just one
+                    duplabelpath = dirpath + name + '/device/port_name'
+                    try:
+                        fd = open(duplabelpath, 'r')
+                        continue   # if duplicate label, bail out
+                    except:
+                        pass
                     if len(portlabel) < 5:
                         continue
                     if portlabel[0:4] != 'port':
@@ -96,9 +115,7 @@ class ports:
                     portname = portlabel
                 # ACCTON uses the i2c devices tree, filled with sfp_* files
                 elif key is 'ACCTON':
-                    # device names look like '<num>-00<addr>',
-                    # eg 54-0050.  addr is the i2c address of the
-                    # EEPROM.  We want only devices with addr '50'
+                    # Same check as OPTOE, verify i2c address of the device
                     if name[-2:] != '50':
                         continue
 
@@ -117,7 +134,7 @@ class ports:
                     raise NotImplementedError("OOM designer screwed up")
 
                 # Looks good, add this as a new port to the list
-                newport = self.portlist[self.portcount]
+                newport = c_port_t()
                 newport.handle = self.portcount
                 if key is "MDIO":
                     newport.oom_class = port_class_e['CFP']
@@ -132,9 +149,21 @@ class ports:
                         newport.name[i] = ord(portname[i])
                     else:
                         newport.name[i] = 0
+                pyportlist.append(newport)
                 self.portname_list.append(eeprompath)
                 self.portcount += 1
             # next key
+
+        # sort the keys by port name
+        # abandoned sorting the keys, because names like 'port1' and 'port2'
+        # will intersperse with names like 'port10' and 'port20' - ugly
+        # list.sort(pyportlist, key=lambda plist: bytearray(plist.name))
+
+        # and stuff them into the C portlist array
+        count = 0
+        for item in pyportlist:
+            self.portlist[count] = item
+            count += 1
         self.shimstate = 1
         self.retval = self.portcount
         return self.retval
