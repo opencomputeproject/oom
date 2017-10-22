@@ -99,7 +99,7 @@
  *
  **/
 
-#define DEBUG 1
+/* #define DEBUG 1 */
 
 #undef EEPROM_CLASS
 
@@ -616,6 +616,9 @@ static ssize_t optoe_read_write(struct optoe_data *optoe,
 	size_t pending_len = 0, chunk_len = 0;
 	loff_t chunk_offset = 0, chunk_start_offset = 0;
 
+	dev_dbg(&client->dev,
+		"optoe_read_write: off %lld  len:%ld, opcode:%s\n",
+		off, (long int) len, (opcode == OPTOE_READ_OP) ? "r": "w");
 	if (unlikely(!len))
 		return len;
 
@@ -628,11 +631,11 @@ static ssize_t optoe_read_write(struct optoe_data *optoe,
 	/*
 	 * Confirm this access fits within the device suppored addr range 
 	 */
-	len = optoe_page_legal(optoe, off, len);
-	if (len < 0) {
-		status = len;
+	status = optoe_page_legal(optoe, off, len);
+	if (status < 0) {
 		goto err;
 	}
+	len = status;
 
 	/*
 	 * For each (128 byte) chunk involved in this request, issue a
