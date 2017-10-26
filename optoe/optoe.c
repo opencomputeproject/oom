@@ -879,6 +879,13 @@ static int optoe_probe(struct i2c_client *client,
 	int num_addresses = 0;
 	int i = 0;
 
+	if (client->addr != 0x50) {
+		dev_dbg(&client->dev, "probe, bad i2c addr: 0x%x\n",
+				      client->addr);
+		err = -EINVAL;
+		goto exit;
+	}
+
 	if (client->dev.platform_data) {
 		chip = *(struct optoe_platform_data *)client->dev.platform_data;
 		dev_dbg(&client->dev, "probe, chip provided, flags:0x%x; name: %s\n", chip.flags, client->name);
