@@ -102,6 +102,12 @@
 /* #define DEBUG 1 */
 
 #undef EEPROM_CLASS
+#ifdef CONFIG_EEPROM_CLASS
+#define EEPROM_CLASS
+#endif
+#ifdef CONFIG_EEPROM_CLASS_MODULE
+#define EEPROM_CLASS
+#endif
 
 #include <linux/kernel.h>
 #include <linux/init.h>

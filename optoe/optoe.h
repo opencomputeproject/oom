@@ -5,7 +5,7 @@
 #include <linux/types.h>
 #include <linux/memory.h>
 
-#ifndef CONFIG_EEPROM_CLASS_MODULE
+#ifdef EEPROM_CLASS
 #include <linux/eeprom_class.h>
 #endif
 
