@@ -64,8 +64,7 @@ def matchport(cport, portlist):
 # In fact, call oom_get_portlist(), cache the portlist, return it's length
 #
 def oom_get_json_portlist_zeros():
-    if portlist.list == []:
-        portlist.list = oom_get_portlist()
+    portlist.list = oom_get_portlist()
     numports = len(portlist.list)
     return '{"numports": "%d"}' % numports
 
