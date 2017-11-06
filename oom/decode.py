@@ -202,11 +202,15 @@ def get3_bit2(x):  # get bits 2, 1, 0
 # high order is bit 7, low order is bit 0
 # so, get_bits(0b00110000, 5, 2) will return 0b11, ie 3
 def get_bits(x, offset, numbits):
-    if (len(x) != 1) or (offset > 7) or (offset < 0) or \
-            (numbits > 8) or (numbits < 1) or \
+    if (len(x) >2 ) or (offset > 15) or (offset < 0) or \
+            (numbits > 16) or (numbits < 1) or \
             ((offset - numbits) < -1):
+        print 'get_bits bad parameters - len(x): %d, offset: %d, numbits: %d' % (len(x), offset, numbits)
         return
     temp = ord(x[0])
+    if len(x) == 2:
+        temp *= 256
+        temp += ord(x[1])
     temp = temp >> ((offset + 1) - numbits)
     temp %= 2**numbits
     return temp
@@ -384,6 +388,21 @@ def get_CU_5_0(x):    # requires byte 147, 187
     return 0
 
 
+def get_freq(x):    # Extract frequency (CFP)
+    if (len(x) < 4):    
+        print "can't decode frequency"
+        return
+
+    # low order bits of first two words are freq in THz
+    freq = ord(x[0]) * 256
+    freq += ord(x[1])
+    subfreq = ord(x[2]) * 256
+    subfreq += ord(x[3])
+    subfreq *= .00005   # specified by the spec, ie .05 GHz = .00005 THz
+    freq += subfreq
+    return freq
+
+
 def hexstr(x):
     result = ''
     for i in x:
@@ -435,9 +454,10 @@ def set_int(current, new):
 # of get_bits(x, offset, numbits)
 # high order is bit 7, low order is bit 0
 def set_bits(current, new, offset, numbits):
-    if (len(current) != 1) or (offset > 7) or (offset < 0) or \
-            (numbits > 8) or (numbits < 1) or \
-            ((offset - numbits) < -1) or (new > 255):
+    if (len(current) != 1) or (offset > 15) or (offset < 0) or \
+            (numbits > 16) or (numbits < 1) or \
+            ((offset - numbits) < -1) or (new > 0xFFFF):
+        print 'set_bits bad parameters'
         return
     tempcurrent = ord(current[0])
 

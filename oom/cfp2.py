@@ -39,15 +39,25 @@
 MM = {             # dynamic?, decoder, collapse, addr, length, BO, BL
      'IDENTIFIER':       (0, 'get_int',         1, 0x8000,  1),
      'VENDOR_NAME':      (0, 'get_string',      1, 0x8021, 16),
+     'VENDOR_OUI':       (0, 'get_bytes',       1, 0x8031, 3),
+     'VENDOR_PN':        (0, 'get_string',      1, 0x8034, 16),
+     'VENDOR_SN':        (0, 'get_string',      1, 0x8044, 16),
      'TEMPERATURE':      (0, 'get_temperature', 0, 0xA02F, 1),
      'SUPPLY_VOLTAGE':   (0, 'get_voltage',     0, 0xA030, 1),
-
+     'MAX_LASER_FREQ_THZ': (0, 'get_freq',      1, 0x818A, 4),
+     'MIN_LASER_FREQ_THZ': (0, 'get_freq',      1, 0x818E, 4),
+     'TX_GRID_SPACE_0':  (0, 'get_bits',        0, 0xB400, 1, 15, 3),
+     'TX_SETTABLE_FREQ_0': (0, 'get_bits',      0, 0xB400, 1, 10, 1),
+     'TX_CHAN_NUMBER_0':   (0, 'get_bits',        0, 0xB400, 1, 9, 10),
 
     }
 
 FM = {
     'SERIAL_ID': ('IDENTIFIER',
                   'VENDOR_NAME',
+                  'VENDOR_OUI',
+                  'VENDOR_PN',
+                  'VENDOR_SN',
                   ),
 
     'DOM': ('TEMPERATURE',

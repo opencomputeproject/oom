@@ -180,6 +180,8 @@ class Port:
 
         # initialize the key maps, potentially unique for each port
         typename = type_to_str(self.port_type).lower()
+        if self.port_type > 0x100:  # all CFP* devices, same spec, same keys
+            typename = 'cfp2'
         try:
             # here is where the type is tied to the keymap file
             # again, try for a local copy first, then relative to the package
