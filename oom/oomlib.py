@@ -22,6 +22,7 @@ from oomtypes import c_port_t
 from oomtypes import port_class_e
 from decode import collapse_cfp
 from decode import expand_cfp
+import re
 
 
 #
@@ -221,6 +222,16 @@ def oom_get_port(n):
 
 
 #
+# Sorts the portlist by port name
+#
+def sort_portlist( portlist ):
+    convert = lambda text: int(text) if text.isdigit() else text
+    alphanum_key = \
+        lambda key: [convert(c) for c in re.split('([0-9]+)', key.port_name) ]
+    return sorted(portlist, key = alphanum_key)
+
+
+#
 # similarly, provide the port list without requiring the definition
 # of the port_t structure.  Allocate the memory here.
 #
@@ -234,7 +245,8 @@ def oom_get_portlist():
     cport_array = c_port_t * numports
     cport_list = cport_array()
     retval = oomsth.shim.oom_get_portlist(cport_list, numports)
-    portlist = [Port(cport) for cport in cport_list]
+    pl = [Port(cport) for cport in cport_list]
+    portlist = sort_portlist(pl)
     return portlist
 
 
