@@ -202,10 +202,11 @@ def get3_bit2(x):  # get bits 2, 1, 0
 # high order is bit 7, low order is bit 0
 # so, get_bits(0b00110000, 5, 2) will return 0b11, ie 3
 def get_bits(x, offset, numbits):
-    if (len(x) >2 ) or (offset > 15) or (offset < 0) or \
+    if (len(x) > 2) or (offset > 15) or (offset < 0) or \
             (numbits > 16) or (numbits < 1) or \
             ((offset - numbits) < -1):
-        print 'get_bits bad parameters - len(x): %d, offset: %d, numbits: %d' % (len(x), offset, numbits)
+        print 'get_bits bad parameters - len(x): %d, offset: %d, numbits: %d'\
+                % (len(x), offset, numbits)
         return
     temp = ord(x[0])
     if len(x) == 2:
@@ -389,7 +390,7 @@ def get_CU_5_0(x):    # requires byte 147, 187
 
 
 def get_freq(x):    # Extract frequency (CFP)
-    if (len(x) < 4):    
+    if (len(x) < 4):
         print "can't decode frequency"
         return
 

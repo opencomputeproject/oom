@@ -1,11 +1,5 @@
-
-# qsfp28.py
-# qsfp28 memory map
-#
-# Note that this is a copy of the qsfp_plus memory map.  The specs
-# indicate that 0x0D (the QSFP+ code) is the preferred encoding for
-# QSFP28 as well.  However, 0x0B is specifically for QSFP28, which is
-# coded here.  Since they are interchangeable, the keys are the same.
+# qsfp.py
+# qsfp+, qsfp28 memory map
 # based on SFF-8636, rev 2.6, Section 6, and SFF-8024
 # Note that values that range from 0-n are returned as integers (get_int)
 # Keys encoded as multi-byte fields are returned as raw bytes (get_bytes)
@@ -27,7 +21,7 @@
 #       LSB is bit 0, MSB is bit 7
 
 
-MM = {             # dynamic?, decoder, addr, page, offset,length, BO, BL
+new_mm_keys = {        # dynamic?, decoder, addr, page, offset,length, BO, BL
     # ID and status bytes (0-2)
     # Note, per the spec: Page 00h Byte 0 and Page 00h Byte 128 shall
     # contain the same parameter values.
@@ -39,6 +33,11 @@ MM = {             # dynamic?, decoder, addr, page, offset,length, BO, BL
     'DATA_NOT_READY':   (1, 'get_bits', 0xA0, 0, 2, 1, 0, 1),
 
     # Interrupt Flags bytes (3-21)
+    # The prefix L_ is for 'latched', all of these are indicators of
+    # (generally) bad things, TX (transmit), RX (receive), bias (laser bias)
+    # temp (temperature), VCC (voltage), etc can trigger high or low,
+    # alarms or warnings.  All but temp and VCC are per-channel.
+    #
     'L_TX_RX_LOS':      (1, 'get_bits', 0xA0, 0, 3, 1, 7, 8),  # 8 LOS bits
     'L_TX4_LOS':        (1, 'get_bits', 0xA0, 0, 3, 1, 7, 1),
     'L_TX3_LOS':        (1, 'get_bits', 0xA0, 0, 3, 1, 6, 1),
@@ -162,19 +161,27 @@ MM = {             # dynamic?, decoder, addr, page, offset,length, BO, BL
     'SUPPLY_VOLTAGE':         (1, 'get_voltage', 0xA0, 0, 26, 2),
     'VENDOR_SPECIFIC_30':     (1, 'get_bytes', 0xA0, 0, 30, 4),
 
-    # Channel Monitors Bytes (34-81)
+    # Channel Monitors Bytes (current values, not alarms/warnings) (34-81)
     'RX1_POWER':        (1, 'get_power', 0xA0, 0, 34, 2),
+    'RX1_POWER_DBM':    (1, 'get_power_dbm', 0xA0, 0, 34, 2),
     'RX2_POWER':        (1, 'get_power', 0xA0, 0, 36, 2),
+    'RX2_POWER_DBM':    (1, 'get_power_dbm', 0xA0, 0, 36, 2),
     'RX3_POWER':        (1, 'get_power', 0xA0, 0, 38, 2),
+    'RX3_POWER_DBM':    (1, 'get_power_dbm', 0xA0, 0, 38, 2),
     'RX4_POWER':        (1, 'get_power', 0xA0, 0, 40, 2),
+    'RX4_POWER_DBM':    (1, 'get_power_dbm', 0xA0, 0, 40, 2),
     'TX1_BIAS':         (1, 'get_current', 0xA0, 0, 42, 2),
     'TX2_BIAS':         (1, 'get_current', 0xA0, 0, 44, 2),
     'TX3_BIAS':         (1, 'get_current', 0xA0, 0, 46, 2),
     'TX4_BIAS':         (1, 'get_current', 0xA0, 0, 48, 2),
     'TX1_POWER':        (1, 'get_power', 0xA0, 0, 50, 2),
+    'TX1_POWER_DBM':    (1, 'get_power_dbm', 0xA0, 0, 50, 2),
     'TX2_POWER':        (1, 'get_power', 0xA0, 0, 52, 2),
+    'TX2_POWER_DBM':    (1, 'get_power_dbm', 0xA0, 0, 52, 2),
     'TX3_POWER':        (1, 'get_power', 0xA0, 0, 54, 2),
+    'TX3_POWER_DBM':    (1, 'get_power_dbm', 0xA0, 0, 54, 2),
     'TX4_POWER':        (1, 'get_power', 0xA0, 0, 56, 2),
+    'TX4_POWER_DBM':    (1, 'get_power_dbm', 0xA0, 0, 56, 2),
     'VENDOR_SPECIFIC_74':     (0, 'get_bytes', 0xA0, 0, 74, 8),
 
     # Control Bytes (86-98)
@@ -285,10 +292,41 @@ MM = {             # dynamic?, decoder, addr, page, offset,length, BO, BL
     # note, byte 222 is bit rate in units of 250Mb, see BR_NOMINAL key
 
     'VENDOR_SPECIFIC_224': (0, 'get_bytes', 0xA0, 0, 224, 32),
+
+    # Thresholds for:
+    # {temperature, voltage, laser bias, Tx_Power, Rx_Power}
+    # {High, Low} {Alarm, Warning}
+    # In other words, 5 values have high/low alarm/warning thresholds
+    # Note - not channel specific, all channels have the same thresholds
+
+    'TEMP_HIGH_ALARM':  (0, 'get_temperature', 0xA0, 3, 128, 2),
+    'TEMP_LOW_ALARM':   (0, 'get_temperature', 0xA0, 3, 130, 2),
+    'TEMP_HIGH_WARN':   (0, 'get_temperature', 0xA0, 3, 132, 2),
+    'TEMP_LOW_WARN':    (0, 'get_temperature', 0xA0, 3, 134, 2),
+
+    'VOLTAGE_HIGH_ALARM': (0, 'get_voltage', 0xA0, 3, 144, 2),
+    'VOLTAGE_LOW_ALARM':  (0, 'get_voltage', 0xA0, 3, 146, 2),
+    'VOLTAGE_HIGH_WARN':  (0, 'get_voltage', 0xA0, 3, 148, 2),
+    'VOLTAGE_LOW_WARN':   (0, 'get_voltage', 0xA0, 3, 150, 2),
+
+    'BIAS_HIGH_ALARM':  (0, 'get_current', 0xA0, 3, 184, 2),
+    'BIAS_LOW_ALARM':   (0, 'get_current', 0xA0, 3, 186, 2),
+    'BIAS_HIGH_WARN':   (0, 'get_current', 0xA0, 3, 188, 2),
+    'BIAS_LOW_WARN':    (0, 'get_current', 0xA0, 3, 190, 2),
+
+    'TX_POWER_HIGH_ALARM': (0, 'get_power_dbm', 0xA0, 3, 192, 2),
+    'TX_POWER_LOW_ALARM':  (0, 'get_power_dbm', 0xA0, 3, 194, 2),
+    'TX_POWER_HIGH_WARN':  (0, 'get_power_dbm', 0xA0, 3, 196, 2),
+    'TX_POWER_LOW_WARN':   (0, 'get_power_dbm', 0xA0, 3, 198, 2),
+
+    'RX_POWER_HIGH_ALARM': (0, 'get_power_dbm', 0xA0, 3, 176, 2),
+    'RX_POWER_LOW_ALARM':  (0, 'get_power_dbm', 0xA0, 3, 178, 2),
+    'RX_POWER_HIGH_WARN':  (0, 'get_power_dbm', 0xA0, 3, 180, 2),
+    'RX_POWER_LOW_WARN':   (0, 'get_power_dbm', 0xA0, 3, 182, 2),
     }
 
 
-FM = {
+new_fm_keys = {
     'SERIAL_ID': ('IDENTIFIER',
                   'EXT_IDENTIFIER',
                   'CONNECTOR',
@@ -340,7 +378,7 @@ FM = {
     }
 
 
-WMAP = {
+new_wm_keys = {
         'TX4_DISABLE': 'set_bits',
         'TX3_DISABLE': 'set_bits',
         'TX2_DISABLE': 'set_bits',
@@ -348,3 +386,15 @@ WMAP = {
         'PASSWORD_CHANGE': 'set_int',
         'PASSWORD_ENTRY': 'set_int',
        }
+
+
+# add these keys to the memory map, function map, write map for
+# QSFP+ and QSFP28 devices
+def add_keys(port):
+    QSFP_PLUS = 0xD
+    QSFP28 = 0x11
+    if (port.port_type != QSFP_PLUS) and (port.port_type != QSFP28):
+        return
+    port.mmap.update(new_mm_keys)
+    port.fmap.update(new_fm_keys)
+    port.wmap.update(new_wm_keys)

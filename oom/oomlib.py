@@ -129,20 +129,20 @@ try:
 except:
     decodelib = importlib.import_module('oom.decode')
 
-# and find any addons that should be incorporated
-addon_fns = []
-addon_dir = os.path.join(packagedir, 'addons')
+# and find all of the key/decode files
+keyfile_fns = []
+keyfile_dir = os.path.join(packagedir, 'keyfiles')
 
-sys.path.insert(0, addon_dir)   # required, to get them imported
+sys.path.insert(0, keyfile_dir)   # required, to get them imported
 
-# build a list of modules in the addons directory
+# build a list of modules in the keyfiles directory
 modulist = []
-modnamelist = glob.glob(os.path.join(addon_dir, '*.py'))
+modnamelist = glob.glob(os.path.join(keyfile_dir, '*.py'))
 for name in modnamelist:
     name = os.path.basename(name)
     name = name[0:len(name)-3]
     modulist.append(name)
-modnamelist = glob.glob(addon_dir + '/*.pyc')  # obfuscated modules!
+modnamelist = glob.glob(keyfile_dir + '/*.pyc')  # obfuscated modules!
 for name in modnamelist:
     name = os.path.basename(name)
     name = name[0:len(name)-4]
@@ -151,15 +151,15 @@ modulist = list(set(modulist))  # eliminate dups, eg: x.py and x.pyc
 
 for module in modulist:
     try:
-        addlib = importlib.import_module(module)
+        keylib = importlib.import_module(module)
     except:
         # skip that one (it is not a module?)
         pass
     else:
         try:
-            addon_fns.append(getattr(addlib, 'add_features'))
+            keyfile_fns.append(getattr(keylib, 'add_keys'))
         except:
-            # skip that one ('add_features' is not there?)
+            # skip that one ('add_keys' is not there?)
             pass
 sys.path = sys.path[1:]  # put the search path back
 
@@ -180,24 +180,10 @@ class Port:
         self.port_type = get_port_type(self)
 
         # initialize the key maps, potentially unique for each port
-        typename = type_to_str(self.port_type).lower()
-        if self.port_type > 0x100:  # all CFP* devices, same spec, same keys
-            typename = 'cfp2'
-        try:
-            # here is where the type is tied to the keymap file
-            # again, try for a local copy first, then relative to the package
-            try:
-                maps = importlib.import_module(typename, package=None)
-            except:
-                maps = importlib.import_module('oom.' + typename)
-            self.mmap = maps.MM
-            self.fmap = maps.FM
-            self.wmap = maps.WMAP
-        except ImportError:
-            self.mmap = {}
-            self.fmap = {}
-            self.wmap = {}
-        for func in addon_fns:  # call all the addons to extend this port
+        self.mmap = {}
+        self.fmap = {}
+        self.wmap = {}
+        for func in keyfile_fns:  # try each keyfile for appropriate keys
             func(self)
         return(None)
 
@@ -224,11 +210,11 @@ def oom_get_port(n):
 #
 # Sorts the portlist by port name
 #
-def sort_portlist( portlist ):
+def sort_portlist(portlist):
     convert = lambda text: int(text) if text.isdigit() else text
     alphanum_key = \
-        lambda key: [convert(c) for c in re.split('([0-9]+)', key.port_name) ]
-    return sorted(portlist, key = alphanum_key)
+        lambda key: [convert(c) for c in re.split('([0-9]+)', key.port_name)]
+    return sorted(portlist, key=alphanum_key)
 
 
 #

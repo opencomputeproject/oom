@@ -1,5 +1,5 @@
 # sfp.py
-# sfp memory map
+# sfp, dwdm_sfp memory map
 # based on SFF-8472, ver 12.2 and SFF-8024
 # Table 4-1, page 14 and table 4-2, page 15
 # Note that values that range from 0-n are returned as integers (get_int)
@@ -22,7 +22,7 @@
 #       LSB is bit 0, MSB is bit 7
 
 
-MM = {             # dynamic?, decoder, addr, page, offset,length, BO, BL
+new_mm_keys = {         # dynamic?, decoder, addr, page, offset,length, BO, BL
      'IDENTIFIER':       (0, 'get_int', 0xA0, 0, 0, 1),
      'EXT_IDENTIFIER':   (0, 'get_int', 0xA0, 0, 1, 1),
      'CONNECTOR':        (0, 'get_int', 0xA0, 0, 2, 1),
@@ -126,7 +126,7 @@ MM = {             # dynamic?, decoder, addr, page, offset,length, BO, BL
      'L_ALARM_WARN':           (1, 'get_bytes', 0xA2, 0, 112, 6),
     }
 
-FM = {
+new_fm_keys = {
     'SERIAL_ID': ('IDENTIFIER',
                   'EXT_IDENTIFIER',
                   'CONNECTOR',
@@ -162,6 +162,18 @@ FM = {
     }
 
 
-WMAP = {
+new_wm_keys = {
          'SOFT_TX_DISABLE_SELECT': 'set_bits',
        }
+
+
+# add these keys to the memory map, function map, write map for
+# SFP and DWDM_SFP devices
+def add_keys(port):
+    SFP = 0x3
+    DWDM_SFP = 0xB
+    if (port.port_type != SFP) and (port.port_type != DWDM_SFP):
+        return
+    port.mmap.update(new_mm_keys)
+    port.fmap.update(new_fm_keys)
+    port.wmap.update(new_wm_keys)

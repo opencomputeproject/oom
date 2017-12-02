@@ -1,5 +1,6 @@
-# cfp2.py
+# cfp.py
 # cfp memory map
+# for all CFP class devices (all MDIO devices optical devices)
 # Based on CFP MSA Management Interface Specification
 # Version 2.6 r04a, October 7, 2016 (See Tables 23-32)
 #
@@ -36,7 +37,7 @@
 #       LSB is bit 0, MSB is bit 15
 
 
-MM = {             # dynamic?, decoder, collapse, addr, length, BO, BL
+new_mm_keys = {             # dynamic?, decoder, collapse, addr, length, BO, BL
      'IDENTIFIER':       (0, 'get_int',         1, 0x8000,  1),
      'VENDOR_NAME':      (0, 'get_string',      1, 0x8021, 16),
      'VENDOR_OUI':       (0, 'get_bytes',       1, 0x8031, 3),
@@ -52,7 +53,7 @@ MM = {             # dynamic?, decoder, collapse, addr, length, BO, BL
 
     }
 
-FM = {
+new_fm_keys = {
     'SERIAL_ID': ('IDENTIFIER',
                   'VENDOR_NAME',
                   'VENDOR_OUI',
@@ -66,6 +67,18 @@ FM = {
     }
 
 
-WMAP = {
+new_wm_keys = {
          'VENDOR_NAME': 'set_string',
        }
+
+
+# add these keys to the memory map, function map, write map for
+# all CFP class devices
+def add_keys(port):
+    # OOM adds 0x100 to all CFP device IDs to disambiguate them
+    # (some of them overlap with the SFP/QSFP family of devices)
+    if (port.port_type < 0x100):
+        return
+    port.mmap.update(new_mm_keys)
+    port.fmap.update(new_fm_keys)
+    port.wmap.update(new_wm_keys)
