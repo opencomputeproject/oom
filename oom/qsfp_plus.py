@@ -299,30 +299,30 @@ MM = {             # dynamic?, decoder, addr, page, offset,length, BO, BL
     # In other words, 5 values have high/low alarm/warning thresholds
     # Note - not channel specific, all channels have the same thresholds
 
-    'TEMP_HIGH_ALARM': (0, 'get_temperature', 0xA0, 3, 128, 2),
-    'TEMP_LOW_ALARM' : (0, 'get_temperature', 0xA0, 3, 130, 2),
-    'TEMP_HIGH_WARN' : (0, 'get_temperature', 0xA0, 3, 132, 2),
-    'TEMP_LOW_WARN'  : (0, 'get_temperature', 0xA0, 3, 134, 2),
+    'TEMP_HIGH_ALARM':  (0, 'get_temperature', 0xA0, 3, 128, 2),
+    'TEMP_LOW_ALARM':   (0, 'get_temperature', 0xA0, 3, 130, 2),
+    'TEMP_HIGH_WARN':   (0, 'get_temperature', 0xA0, 3, 132, 2),
+    'TEMP_LOW_WARN':    (0, 'get_temperature', 0xA0, 3, 134, 2),
 
-    'VOLTAGE_HIGH_ALARM' : (0, 'get_voltage', 0xA0, 3, 144, 2),
-    'VOLTAGE_LOW_ALARM'  : (0, 'get_voltage', 0xA0, 3, 146, 2),
-    'VOLTAGE_HIGH_WARN'  : (0, 'get_voltage', 0xA0, 3, 148, 2),
-    'VOLTAGE_LOW_WARN'   : (0, 'get_voltage', 0xA0, 3, 150, 2),
+    'VOLTAGE_HIGH_ALARM': (0, 'get_voltage', 0xA0, 3, 144, 2),
+    'VOLTAGE_LOW_ALARM':  (0, 'get_voltage', 0xA0, 3, 146, 2),
+    'VOLTAGE_HIGH_WARN':  (0, 'get_voltage', 0xA0, 3, 148, 2),
+    'VOLTAGE_LOW_WARN':   (0, 'get_voltage', 0xA0, 3, 150, 2),
 
-    'BIAS_HIGH_ALARM' : (0, 'get_current', 0xA0, 3, 184, 2),
-    'BIAS_LOW_ALARM'  : (0, 'get_current', 0xA0, 3, 186, 2),
-    'BIAS_HIGH_WARN'  : (0, 'get_current', 0xA0, 3, 188, 2),
-    'BIAS_LOW_WARN'   : (0, 'get_current', 0xA0, 3, 190, 2),
+    'BIAS_HIGH_ALARM':  (0, 'get_current', 0xA0, 3, 184, 2),
+    'BIAS_LOW_ALARM':   (0, 'get_current', 0xA0, 3, 186, 2),
+    'BIAS_HIGH_WARN':   (0, 'get_current', 0xA0, 3, 188, 2),
+    'BIAS_LOW_WARN':    (0, 'get_current', 0xA0, 3, 190, 2),
 
-    'TX_POWER_HIGH_ALARM' : (0, 'get_power_dbm', 0xA0, 3, 192, 2),
-    'TX_POWER_LOW_ALARM'  : (0, 'get_power_dbm', 0xA0, 3, 194, 2),
-    'TX_POWER_HIGH_WARN'  : (0, 'get_power_dbm', 0xA0, 3, 196, 2),
-    'TX_POWER_LOW_WARN'   : (0, 'get_power_dbm', 0xA0, 3, 198, 2),
+    'TX_POWER_HIGH_ALARM': (0, 'get_power_dbm', 0xA0, 3, 192, 2),
+    'TX_POWER_LOW_ALARM':  (0, 'get_power_dbm', 0xA0, 3, 194, 2),
+    'TX_POWER_HIGH_WARN':  (0, 'get_power_dbm', 0xA0, 3, 196, 2),
+    'TX_POWER_LOW_WARN':   (0, 'get_power_dbm', 0xA0, 3, 198, 2),
 
-    'RX_POWER_HIGH_ALARM' : (0, 'get_power_dbm', 0xA0, 3, 176, 2),
-    'RX_POWER_LOW_ALARM'  : (0, 'get_power_dbm', 0xA0, 3, 178, 2),
-    'RX_POWER_HIGH_WARN'  : (0, 'get_power_dbm', 0xA0, 3, 180, 2),
-    'RX_POWER_LOW_WARN'   : (0, 'get_power_dbm', 0xA0, 3, 182, 2),
+    'RX_POWER_HIGH_ALARM': (0, 'get_power_dbm', 0xA0, 3, 176, 2),
+    'RX_POWER_LOW_ALARM':  (0, 'get_power_dbm', 0xA0, 3, 178, 2),
+    'RX_POWER_HIGH_WARN':  (0, 'get_power_dbm', 0xA0, 3, 180, 2),
+    'RX_POWER_LOW_WARN':   (0, 'get_power_dbm', 0xA0, 3, 182, 2),
     }
 
 

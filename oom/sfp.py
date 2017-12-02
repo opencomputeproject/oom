@@ -84,46 +84,46 @@ MM = {             # dynamic?, decoder, addr, page, offset,length, BO, BL
      # The latched values are integers: bit 0 is always the 'low' alarm
      # or warning, bit 1 is always the 'high' alarm or warning
      # so if L_TEMP_ALARM is 2, that means there is a high temp alarm
-     'TEMP_HIGH_ALARM': (0, 'get_temperature', 0xA2, 0, 0, 2),
-     'TEMP_LOW_ALARM' : (0, 'get_temperature', 0xA2, 0, 2, 2),
-     'TEMP_HIGH_WARN' : (0, 'get_temperature', 0xA2, 0, 4, 2),
-     'TEMP_LOW_WARN'  : (0, 'get_temperature', 0xA2, 0, 6, 2),
-     'L_TEMP_ALARM'   : (1, 'get_bits', 0xA2, 0, 112, 1, 7, 2),
-     'L_TEMP_WARN'    : (1, 'get_bits', 0xA2, 0, 116, 1, 7, 2),
+     'TEMP_HIGH_ALARM':        (0, 'get_temperature', 0xA2, 0, 0, 2),
+     'TEMP_LOW_ALARM':         (0, 'get_temperature', 0xA2, 0, 2, 2),
+     'TEMP_HIGH_WARN':         (0, 'get_temperature', 0xA2, 0, 4, 2),
+     'TEMP_LOW_WARN':          (0, 'get_temperature', 0xA2, 0, 6, 2),
+     'L_TEMP_ALARM':           (1, 'get_bits', 0xA2, 0, 112, 1, 7, 2),
+     'L_TEMP_WARN':            (1, 'get_bits', 0xA2, 0, 116, 1, 7, 2),
 
-     'VOLTAGE_HIGH_ALARM' : (0, 'get_voltage', 0xA2, 0, 8, 2),
-     'VOLTAGE_LOW_ALARM'  : (0, 'get_voltage', 0xA2, 0, 10, 2),
-     'VOLTAGE_HIGH_WARN'  : (0, 'get_voltage', 0xA2, 0, 12, 2),
-     'VOLTAGE_LOW_WARN'   : (0, 'get_voltage', 0xA2, 0, 14, 2),
-     'L_VCC_ALARM'        : (1, 'get_bits', 0xA2, 0, 112, 1, 5, 2),
-     'L_VCC_WARN'         : (1, 'get_bits', 0xA2, 0, 116, 1, 5, 2),
+     'VOLTAGE_HIGH_ALARM':     (0, 'get_voltage', 0xA2, 0, 8, 2),
+     'VOLTAGE_LOW_ALARM':      (0, 'get_voltage', 0xA2, 0, 10, 2),
+     'VOLTAGE_HIGH_WARN':      (0, 'get_voltage', 0xA2, 0, 12, 2),
+     'VOLTAGE_LOW_WARN':       (0, 'get_voltage', 0xA2, 0, 14, 2),
+     'L_VCC_ALARM':            (1, 'get_bits', 0xA2, 0, 112, 1, 5, 2),
+     'L_VCC_WARN':             (1, 'get_bits', 0xA2, 0, 116, 1, 5, 2),
 
-     'BIAS_HIGH_ALARM' : (0, 'get_current', 0xA2, 0, 16, 2),
-     'BIAS_LOW_ALARM'  : (0, 'get_current', 0xA2, 0, 18, 2),
-     'BIAS_HIGH_WARN'  : (0, 'get_current', 0xA2, 0, 20, 2),
-     'BIAS_LOW_WARN'   : (0, 'get_current', 0xA2, 0, 22, 2),
-     'L_BIAS_ALARM'    : (1, 'get_bits', 0xA2, 0, 112, 1, 3, 2),
-     'L_BIAS_WARN'     : (1, 'get_bits', 0xA2, 0, 116, 1, 3, 2),
+     'BIAS_HIGH_ALARM':        (0, 'get_current', 0xA2, 0, 16, 2),
+     'BIAS_LOW_ALARM':         (0, 'get_current', 0xA2, 0, 18, 2),
+     'BIAS_HIGH_WARN':         (0, 'get_current', 0xA2, 0, 20, 2),
+     'BIAS_LOW_WARN':          (0, 'get_current', 0xA2, 0, 22, 2),
+     'L_BIAS_ALARM':           (1, 'get_bits', 0xA2, 0, 112, 1, 3, 2),
+     'L_BIAS_WARN':            (1, 'get_bits', 0xA2, 0, 116, 1, 3, 2),
 
-     'TX_POWER_HIGH_ALARM' : (0, 'get_power_dbm', 0xA2, 0, 24, 2),
-     'TX_POWER_LOW_ALARM'  : (0, 'get_power_dbm', 0xA2, 0, 26, 2),
-     'TX_POWER_HIGH_WARN'  : (0, 'get_power_dbm', 0xA2, 0, 28, 2),
-     'TX_POWER_LOW_WARN'   : (0, 'get_power_dbm', 0xA2, 0, 30, 2),
-     'L_TX_POWER_ALARM'    : (1, 'get_bits', 0xA2, 0, 112, 1, 1, 2),
-     'L_TX_POWER_WARN'     : (1, 'get_bits', 0xA2, 0, 116, 1, 1, 2),
+     'TX_POWER_HIGH_ALARM':    (0, 'get_power_dbm', 0xA2, 0, 24, 2),
+     'TX_POWER_LOW_ALARM':     (0, 'get_power_dbm', 0xA2, 0, 26, 2),
+     'TX_POWER_HIGH_WARN':     (0, 'get_power_dbm', 0xA2, 0, 28, 2),
+     'TX_POWER_LOW_WARN':      (0, 'get_power_dbm', 0xA2, 0, 30, 2),
+     'L_TX_POWER_ALARM':       (1, 'get_bits', 0xA2, 0, 112, 1, 1, 2),
+     'L_TX_POWER_WARN':        (1, 'get_bits', 0xA2, 0, 116, 1, 1, 2),
 
-     'RX_POWER_HIGH_ALARM' : (0, 'get_power_dbm', 0xA2, 0, 32, 2),
-     'RX_POWER_LOW_ALARM'  : (0, 'get_power_dbm', 0xA2, 0, 34, 2),
-     'RX_POWER_HIGH_WARN'  : (0, 'get_power_dbm', 0xA2, 0, 36, 2),
-     'RX_POWER_LOW_WARN'   : (0, 'get_power_dbm', 0xA2, 0, 38, 2),
-     'L_RX_POWER_ALARM'    : (1, 'get_bits', 0xA2, 0, 113, 1, 7, 2),
-     'L_RX_POWER_WARN'     : (1, 'get_bits', 0xA2, 0, 117, 1, 7, 2),
+     'RX_POWER_HIGH_ALARM':    (0, 'get_power_dbm', 0xA2, 0, 32, 2),
+     'RX_POWER_LOW_ALARM':     (0, 'get_power_dbm', 0xA2, 0, 34, 2),
+     'RX_POWER_HIGH_WARN':     (0, 'get_power_dbm', 0xA2, 0, 36, 2),
+     'RX_POWER_LOW_WARN':      (0, 'get_power_dbm', 0xA2, 0, 38, 2),
+     'L_RX_POWER_ALARM':       (1, 'get_bits', 0xA2, 0, 113, 1, 7, 2),
+     'L_RX_POWER_WARN':        (1, 'get_bits', 0xA2, 0, 117, 1, 7, 2),
 
      # all of the latched alarms and warnings in 6 consecutive bytes
      # (includes 'unallocated' byte 114, and 'CDR unlocked' byte 115)
      # If the first two and last two are zeros, then no alarms or warnings
      # are currently pending
-     'L_ALARM_WARN'        : (1, 'get_bytes', 0xA2, 0, 112, 6),
+     'L_ALARM_WARN':           (1, 'get_bytes', 0xA2, 0, 112, 6),
     }
 
 FM = {
