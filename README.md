@@ -1,13 +1,20 @@
 # oom
 Open Optical Monitoring - http://www.opencompute.org/wiki/Networking/SpecsAndDesigns#Open_Optical_Monitoring
 
-This is a project to make the contents of optical module EEPROM
+This is a project to make the contents of optical module EEPROMs
 accessible to python programmers.  This allows a python programmer
 to query the value of dozens of keys (serial Number, module type,
 temperature, transmit power, ...), for the optical module in each
 port of a switch.  In addition to key/value read access, the OOM
 project also supports key/value write to a limited number of EEPROM
 locations, and raw read/write access directly to EEPROM.
+
+NEWS:  December 3, 2017
+The OOM graphical demo has been released in this github repo.  Used by
+Finisar at the last two OCP Summits, it is now available to all.  As
+with all of OOM, it works equally for any optics that conform to the
+relevant standards, and works on any switch/NOS stack that supports OOM.
+See the file in demo/README for instructions to install and use.
 
 NEWS:  October 8, 2017
 Beta Release of the 'optoe' driver.  Supports SFP type (SFF-8472) and
@@ -20,15 +27,15 @@ OOM has been updated to locate eeprom files and port names created by optoe.
 NEWS:  August 25, 2017
 Checked in a linux driver that demonstrates write capability, and the
 ability to access up to the full 128 pages architected for SFP/QSFP
-optical transceivers.  Probably not ready for production deployment, 
+optical transceivers.  Probably not ready for production deployment,
 it has undergone limited testing, and does not rigorously handle all
-error paths.  Built and run successfully on a Linux 3.2 and 
+error paths.  Built and run successfully on a Linux 3.2 and
 Linux 4.1 kernel in a Cumulus NOS environment on an AS5712. This code
 has also been ported and tested on the accton AS7712-32x development
 environment.  (see oom/sff_8436_eeprom_deb.c, oom_sff-8436.h)
 
 CFP support has been implemented.  Note only 4 keys implemented so far,
-but all the code is in place to support all functions. 
+but all the code is in place to support all functions.
 
 NEWS:  March 31, 2017
 
