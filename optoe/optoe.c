@@ -492,8 +492,8 @@ static ssize_t optoe_eeprom_update_client(struct optoe_data *optoe,
 
 	page = optoe_translate_offset(optoe, &phy_offset, &client);
 	dev_dbg(&client->dev,
-			"__func__ off %lld  page:%d phy_offset:%lld, count:%ld, opcode:%d\n",
-			off, page, phy_offset, (long int) count, opcode);
+		"%s off %lld  page:%d phy_offset:%lld, count:%ld, opcode:%d\n",
+		__func__, off, page, phy_offset, (long int) count, opcode);
 	if (page > 0) {
 		ret = optoe_eeprom_write(optoe, client, &page,
 			OPTOE_PAGE_SELECT_REG, 1);
@@ -632,8 +632,9 @@ static ssize_t optoe_read_write(struct optoe_data *optoe,
 	loff_t chunk_offset = 0, chunk_start_offset = 0;
 
 	dev_dbg(&client->dev,
-		"__func__: off %lld  len:%ld, opcode:%s\n",
-		off, (long int) len, (opcode == OPTOE_READ_OP) ? "r" : "w");
+		"%s: off %lld  len:%ld, opcode:%s\n",
+		__func__, off, (long int) len, 
+		(opcode == OPTOE_READ_OP) ? "r" : "w");
 	if (unlikely(!len))
 		return len;
 
