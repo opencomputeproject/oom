@@ -100,7 +100,6 @@
  **/
 
 /* #define DEBUG 1 */
-#define DEBUG 1
 
 #undef EEPROM_CLASS
 #ifdef CONFIG_EEPROM_CLASS
@@ -119,13 +118,28 @@
 #include <linux/sysfs.h>
 #include <linux/jiffies.h>
 #include <linux/i2c.h>
-#include <linux/i2c/optoe.h>
 
 #ifdef EEPROM_CLASS
 #include <linux/eeprom_class.h>
 #endif
 
 #include <linux/types.h>
+
+/* The maximum length of a port name */
+#define MAX_PORT_NAME_LEN 20
+
+struct optoe_platform_data {
+	u32		byte_len;		/* size (sum of all addr) */
+	u16		page_size;		/* for writes */
+	u8		flags;
+	void		*dummy1;		/* backward compatibility */
+	void		*dummy2;		/* backward compatibility */
+
+#ifdef EEPROM_CLASS
+	struct eeprom_platform_data *eeprom_data;
+#endif
+	char port_name[MAX_PORT_NAME_LEN];
+};
 
 /* fundamental unit of addressing for EEPROM */
 #define OPTOE_PAGE_SIZE 128
@@ -155,11 +169,8 @@
 #define OPTOE_READ_OP 0
 #define OPTOE_WRITE_OP 1
 
-/* The maximum length of a port name */
-#define MAX_PORT_NAME_LEN 20
 struct optoe_data {
 	struct optoe_platform_data chip;
-	struct memory_accessor macc;
 	int use_smbus;
 	char port_name[MAX_PORT_NAME_LEN];
 
@@ -633,7 +644,7 @@ static ssize_t optoe_read_write(struct optoe_data *optoe,
 
 	dev_dbg(&client->dev,
 		"%s: off %lld  len:%ld, opcode:%s\n",
-		__func__, off, (long int) len, 
+		__func__, off, (long int) len,
 		(opcode == OPTOE_READ_OP) ? "r" : "w");
 	if (unlikely(!len))
 		return len;
@@ -747,34 +758,6 @@ static ssize_t optoe_bin_write(struct file *filp, struct kobject *kobj,
 
 	return optoe_read_write(optoe, buf, off, count, OPTOE_WRITE_OP);
 }
-/*-------------------------------------------------------------------------*/
-
-/*
- * This lets other kernel code access the eeprom data. For example, it
- * might hold a board's Ethernet address, or board-specific calibration
- * data generated on the manufacturing floor.
- */
-
-static ssize_t optoe_macc_read(struct memory_accessor *macc,
-		char *buf, off_t offset, size_t count)
-{
-	struct optoe_data *optoe = container_of(macc,
-					struct optoe_data, macc);
-
-	return optoe_read_write(optoe, buf, offset, count, OPTOE_READ_OP);
-}
-
-static ssize_t optoe_macc_write(struct memory_accessor *macc,
-		const char *buf, off_t offset, size_t count)
-{
-	struct optoe_data *optoe = container_of(macc,
-					struct optoe_data, macc);
-
-	return optoe_read_write(optoe, (char *) buf, offset,
-						count, OPTOE_WRITE_OP);
-}
-
-/*-------------------------------------------------------------------------*/
 
 static int optoe_remove(struct i2c_client *client)
 {
@@ -796,42 +779,6 @@ static int optoe_remove(struct i2c_client *client)
 	kfree(optoe);
 	return 0;
 }
-
-static ssize_t show_port_name(struct device *dev,
-			struct device_attribute *dattr, char *buf)
-{
-	struct i2c_client *client = to_i2c_client(dev);
-	struct optoe_data *optoe = i2c_get_clientdata(client);
-	ssize_t count;
-
-	mutex_lock(&optoe->lock);
-	count = sprintf(buf, "%s\n", optoe->port_name);
-	mutex_unlock(&optoe->lock);
-
-	return count;
-}
-
-static ssize_t set_port_name(struct device *dev,
-			struct device_attribute *attr,
-			const char *buf, size_t count)
-{
-	struct i2c_client *client = to_i2c_client(dev);
-	struct optoe_data *optoe = i2c_get_clientdata(client);
-	char port_name[MAX_PORT_NAME_LEN];
-
-	/* no checking, this value is not used except by show_port_name */
-
-	if (sscanf(buf, "%19s", port_name) != 1)
-		return -EINVAL;
-
-	mutex_lock(&optoe->lock);
-	strcpy(optoe->port_name, port_name);
-	mutex_unlock(&optoe->lock);
-
-	return count;
-}
-
-static DEVICE_ATTR(port_name,  0644, show_port_name, set_port_name);
 
 static ssize_t show_dev_class(struct device *dev,
 			struct device_attribute *dattr, char *buf)
@@ -871,10 +818,56 @@ static ssize_t set_dev_class(struct device *dev,
 	return count;
 }
 
+/*
+ * if using the EEPROM CLASS driver, we don't report a port_name,
+ * the EEPROM CLASS drive handles that.  Hence all this code is
+ * only compiled if we are NOT using the EEPROM CLASS driver.
+ */
+#ifndef EEPROM_CLASS
+
+static ssize_t show_port_name(struct device *dev,
+			struct device_attribute *dattr, char *buf)
+{
+	struct i2c_client *client = to_i2c_client(dev);
+	struct optoe_data *optoe = i2c_get_clientdata(client);
+	ssize_t count;
+
+	mutex_lock(&optoe->lock);
+	count = sprintf(buf, "%s\n", optoe->port_name);
+	mutex_unlock(&optoe->lock);
+
+	return count;
+}
+
+static ssize_t set_port_name(struct device *dev,
+			struct device_attribute *attr,
+			const char *buf, size_t count)
+{
+	struct i2c_client *client = to_i2c_client(dev);
+	struct optoe_data *optoe = i2c_get_clientdata(client);
+	char port_name[MAX_PORT_NAME_LEN];
+
+	/* no checking, this value is not used except by show_port_name */
+
+	if (sscanf(buf, "%19s", port_name) != 1)
+		return -EINVAL;
+
+	mutex_lock(&optoe->lock);
+	strcpy(optoe->port_name, port_name);
+	mutex_unlock(&optoe->lock);
+
+	return count;
+}
+
+static DEVICE_ATTR(port_name,  0644, show_port_name, set_port_name);
+#endif  /* if NOT defined EEPROM_CLASS, the common case */
+
 static DEVICE_ATTR(dev_class,  0644, show_dev_class, set_dev_class);
 
 static struct attribute *optoe_attrs[] = {
+#ifndef EEPROM_CLASS
 	&dev_attr_port_name.attr,
+#endif
 	&dev_attr_dev_class.attr,
 	NULL,
 };
@@ -891,7 +884,7 @@ static int optoe_probe(struct i2c_client *client,
 	struct optoe_platform_data chip;
 	struct optoe_data *optoe;
 	int num_addresses = 0;
-	int i = 0;
+	char port_name[MAX_PORT_NAME_LEN];
 
 	if (client->addr != 0x50) {
 		dev_dbg(&client->dev, "probe, bad i2c addr: 0x%x\n",
@@ -902,6 +895,12 @@ static int optoe_probe(struct i2c_client *client,
 
 	if (client->dev.platform_data) {
 		chip = *(struct optoe_platform_data *)client->dev.platform_data;
+		/* take the port name from the supplied platform data */
+#ifdef EEPROM_CLASS
+		strncpy(port_name, chip.eeprom_data->label, MAX_PORT_NAME_LEN);
+#else
+		memcpy(port_name, chip.port_name, MAX_PORT_NAME_LEN);
+#endif
 		dev_dbg(&client->dev,
 			"probe, chip provided, flags:0x%x; name: %s\n",
 			chip.flags, client->name);
@@ -911,9 +910,8 @@ static int optoe_probe(struct i2c_client *client,
 			goto exit;
 		}
 		dev_dbg(&client->dev, "probe, building chip\n");
+		strcpy(port_name, "unitialized");
 		chip.flags = 0;
-		chip.setup = NULL;
-		chip.context = NULL;
 #ifdef EEPROM_CLASS
 		chip.eeprom_data = NULL;
 #endif
@@ -973,7 +971,7 @@ static int optoe_probe(struct i2c_client *client,
 	optoe->use_smbus = use_smbus;
 	optoe->chip = chip;
 	optoe->num_addresses = num_addresses;
-	strcpy(optoe->port_name, "unitialized");
+	memcpy(optoe->port_name, port_name, MAX_PORT_NAME_LEN);
 
 	/*
 	 * Export the EEPROM bytes through sysfs, since that's convenient.
@@ -984,8 +982,6 @@ static int optoe_probe(struct i2c_client *client,
 	optoe->bin.attr.mode = 0444;
 	optoe->bin.read = optoe_bin_read;
 	optoe->bin.size = chip.byte_len;
-
-	optoe->macc.read = optoe_macc_read;
 
 	if (!use_smbus ||
 			(i2c_check_functionality(client->adapter,
@@ -1002,8 +998,6 @@ static int optoe_probe(struct i2c_client *client,
 		 * Application Note AN-2071.
 		 */
 		unsigned int write_max = 1;
-
-		optoe->macc.write = optoe_macc_write;
 
 		optoe->bin.write = optoe_bin_write;
 		optoe->bin.attr.mode |= 0200;
@@ -1027,13 +1021,11 @@ static int optoe_probe(struct i2c_client *client,
 
 	optoe->client[0] = client;
 
-	/* use a dummy I2C device for two-address chips */
-	for (i = 1; i < num_addresses; i++) {
-		optoe->client[i] = i2c_new_dummy(client->adapter,
-					client->addr + i);
-		if (!optoe->client[i]) {
-			dev_err(&client->dev, "address 0x%02x unavailable\n",
-				client->addr + i);
+	/* SFF-8472 spec requires that the second I2C address be 0x51 */
+	if (num_addresses == 2) {
+		optoe->client[1] = i2c_new_dummy(client->adapter, 0x51);
+		if (!optoe->client[1]) {
+			dev_err(&client->dev, "address 0x51 unavailable\n");
 			err = -EADDRINUSE;
 			goto err_struct;
 		}
@@ -1051,6 +1043,7 @@ static int optoe_probe(struct i2c_client *client,
 		dev_err(&client->dev, "failed to create sysfs attribute group.\n");
 		goto err_struct;
 	}
+
 #ifdef EEPROM_CLASS
 	optoe->eeprom_dev = eeprom_device_register(&client->dev,
 							chip.eeprom_data);
@@ -1074,9 +1067,6 @@ static int optoe_probe(struct i2c_client *client,
 			use_smbus == I2C_SMBUS_WORD_DATA ? "word" : "byte");
 	}
 
-	if (chip.setup)
-		chip.setup(&optoe->macc, chip.context);
-
 	return 0;
 
 #ifdef EEPROM_CLASS
@@ -1086,9 +1076,9 @@ err_sysfs_cleanup:
 #endif
 
 err_struct:
-	for (i = 1; i < num_addresses; i++) {
-		if (optoe->client[i])
-			i2c_unregister_device(optoe->client[i]);
+	if (num_addresses == 2) {
+		if (optoe->client[1])
+			i2c_unregister_device(optoe->client[1]);
 	}
 
 	kfree(optoe->writebuf);
