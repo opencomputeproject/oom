@@ -9,6 +9,22 @@ port of a switch.  In addition to key/value read access, the OOM
 project also supports key/value write to a limited number of EEPROM
 locations, and raw read/write access directly to EEPROM.
 
+NEWS:  February 2, 2018
+The optoe driver has been used by several server vendors, and pushed
+to at least two NOS repos.  Much has been learned in the process.  Sonic
+is migrating to Linux 4.9, which has removed one interface that optoe was
+using.  So, optoe has been updated to incorporate this and several other
+items:
+  - optoe.h merged into optoe.c (based on feedback from users)
+  - removed struct memory_accessor (not in Linux 4.6 and newer)
+  - accept port_name through platform_data if provided
+  - minor simplification of code
+  - optoe.c passes linux checkpatch.pl and is ready to submit upstream
+
+Switch and NOS vendors are encouraged to use this version of optoe.c
+If you need to change the code for your usage, please discuss this
+with don@thebollingers.org so I can maintain a common driver for all.
+
 NEWS:  December 3, 2017
 The OOM graphical demo has been released in this github repo.  Used by
 Finisar at the last two OCP Summits, it is now available to all.  As

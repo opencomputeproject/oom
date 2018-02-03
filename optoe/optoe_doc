@@ -26,7 +26,9 @@ attribute: 'port_name'.  This is a read/write attribute.  It should be
 explicitly set as part of system initialization, ideally at the same time
 the device is instantiated.  Write an appropriate port name (any string, up
 to 19 characters) to initialize.  If not initialized explicitly, all ports
-will have the port_name of 'unitialized'.
+will have the port_name of 'unitialized'.  Alternatively, if the driver is
+called with platform_data, the port_name will be read from eeprom_data->label
+(if the EEPROM CLASS driver is configured) or from platform_data.port_name.
 
 This driver can be instantiated with 'new_device', per the convention
 described in Documentation/i2c/instantiating-devices.  It wants one of
