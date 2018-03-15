@@ -153,6 +153,7 @@ class portlist:
     list = []
 
 portlist = portlist()
+oomlib.oom_portlist_nokeys = 1    # secret speedup for oom_get_portlist()
 
 if __name__ == "__main__":
     # to debug locally use:

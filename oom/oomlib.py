@@ -25,6 +25,11 @@ from decode import expand_cfp
 import re
 
 
+# global variable to tell OOM that we won't need any key lookups,
+# or the type of the device, so we can skip reading devices on
+# calls to oom_get_portlist().  This is a useful speedup for oomjsonsvr.py
+oom_portlist_nokeys = 0
+
 #
 # Mapping of port_type numbers to user accessible names
 # This is a copy of a matching table in decode.py
@@ -177,14 +182,15 @@ class Port:
 
         # copy the C character array into a more manageable python string
         self.port_name = bytearray(cport.name).rstrip('\0')
-        self.port_type = get_port_type(self)
+        if oom_portlist_nokeys == 0:
+            self.port_type = get_port_type(self)
 
-        # initialize the key maps, potentially unique for each port
-        self.mmap = {}
-        self.fmap = {}
-        self.wmap = {}
-        for func in keyfile_fns:  # try each keyfile for appropriate keys
-            func(self)
+            # initialize the key maps, potentially unique for each port
+            self.mmap = {}
+            self.fmap = {}
+            self.wmap = {}
+            for func in keyfile_fns:  # try each keyfile for appropriate keys
+                func(self)
         return(None)
 
     def add_addr(self, address):
