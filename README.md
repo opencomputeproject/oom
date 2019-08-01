@@ -9,6 +9,20 @@ port of a switch.  In addition to key/value read access, the OOM
 project also supports key/value write to a limited number of EEPROM
 locations, and raw read/write access directly to EEPROM.
 
+NEWS:  August 1, 2019
+The optoe driver has been updated to support CMIS type devices.  These
+include QSFP-DD, OSFP, COBO and SFP-DD at least.  They conform to the
+"Common Management Interface Specification", which defines a different
+EEPROM layout from either SFP (sff_8472) or QSFP (sff_8636) type devices.
+See the 'optoe_doc' file in the optoe directory for details on how to
+specify a CMIS device (hint, it is 'optoe3').
+
+An OOM keyfile for CMIS devices has also been added (cmis.py).  Consider
+it a sample.  The keys are believed to be correct, but only a limited
+number of keys have been implemented.  Users can add their own keyfile
+defining more keys, or contact the maintainer to discuss adding keys to
+the cmis.py file.
+
 NEWS:  February 2, 2018
 The optoe driver has been used by several server vendors, and pushed
 to at least two NOS repos.  Much has been learned in the process.  Sonic
