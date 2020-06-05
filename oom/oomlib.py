@@ -62,6 +62,9 @@ port_type_e = {
     'SMM_HD_8X_FANOUT': 0x15,
     'CDFP_STYLE_3': 0x16,
     'MICRO_QSFP': 0x17,
+    'QSFP_DD': 0x18,
+    'OSFP': 0x19,
+    'QSFPwCMIS':0x1E,
 
     #  next values are CFP types. Note that their spec
     #  (CFP MSA Management Interface Specification ver 2.4 r06b page 67)
