@@ -64,7 +64,7 @@ port_type_e = {
     'MICRO_QSFP': 0x17,
     'QSFP_DD': 0x18,
     'OSFP': 0x19,
-    'QSFPwCMIS':0x1E,
+    'QSFPwCMIS': 0x1E,
 
     #  next values are CFP types. Note that their spec
     #  (CFP MSA Management Interface Specification ver 2.4 r06b page 67)
@@ -114,10 +114,24 @@ oomsth = oomsth_c()
 packagedir = os.path.normpath(os.path.dirname(os.path.realpath(__file__)))
 
 try:
+    # first choice for a shim (for legacy reasons) is a compiled C library
     oomsth.shim = cdll.LoadLibrary(
                     os.path.join(packagedir, 'lib', 'oom_south.so'))
 except:
-    setshim("oomsysfsshim", None)
+    # look for an installed shim (default for this system),
+    # and an optional parameter to pass to it
+    shimparm = None
+    parmsfile = os.path.join(packagedir, 'installedshim_parms')
+    if os.path.isfile(parmsfile):
+        try:
+            fd = open(parmsfile, 'r')
+            shimparm = fd.readline().strip('\n\r')
+        except:
+            pass
+    try:
+        setshim("installedshim", shimparm)
+    except:
+        setshim("oomsysfsshim", None)
 
 # The simulator shim needs to know where the package is installed,
 # to find the module data, the Aardvark shim needs to know where
