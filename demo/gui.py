@@ -15,7 +15,7 @@ from Tkinter import *
 def portstr(port):
     formatstr = '%-11s %-13s %-16s %-16s %-16s'
     modtype = type_to_str(port.port_type)
-    if modtype is 'UNKNOWN':
+    if modtype == 'UNKNOWN':
         return "%-11s No Module" % port.port_name
     return formatstr % (port.port_name,
                         modtype,
@@ -132,7 +132,7 @@ class OOMdemo:
 
     def invmenu_builder(self, event):
         kill_widgets()
-        if self.inv.curselection() is ():
+        if self.inv.curselection() == ():
             oopsbox = Listbox(self.frame, width=50, height=1)
             killlist.append(oopsbox)
             oopsbox.pack()
@@ -166,9 +166,9 @@ class OOMdemo:
 
         for portnum in self.inv.curselection():
             port = self.portlist[portnum]
-            if port.port_type is 0:
+            if port.port_type == 0:
                 continue
-            if func is "DOM":
+            if func == "DOM":
                 newroot = Tk()  # get a new window
                 newroot.title("%s DOM Status" % port.port_name)
 
@@ -178,7 +178,7 @@ class OOMdemo:
 
                 # put a canvas in it to hold all the graphics
                 cwidth = 1000
-                if port.port_type is 3:  # SFP gets a narrower canvas
+                if port.port_type == 3:  # SFP gets a narrower canvas
                     cwidth = 550
                 c = Canvas(frame, bd=0, width=cwidth, height=300,
                            scrollregion=(0, 0, 1540, 300))
@@ -195,13 +195,13 @@ class OOMdemo:
 
             # Common code path for "CODE", "ALL", and any fmap
 
-            if func is "CODE":
+            if func == "CODE":
                 boxheight = 24
             else:
                 try:  # see if 'func' is a key in the function map (eg DOM)
                     keys = port.fmap[func]
                 except:  # if not, special case "ALL keys"
-                    if func is "ALL":
+                    if func == "ALL":
                         keys = []
                         for key in port.mmap:
                             keys.append(key)
@@ -223,7 +223,7 @@ class OOMdemo:
             sbar.config(command=portbox.yview)
 
             # and add contents
-            if func is 'CODE':
+            if func == 'CODE':
                 printcode(newroot, portbox, port, portnum)
             else:
                 newroot.title("%s keys -- %s" % (func, portstr(port)))
@@ -242,8 +242,8 @@ class OOMdemo:
                 for key in sorted(keys):
                     val = oom_get_keyvalue_cached(port, key)
                     decoder = port.mmap[key][1]
-                    if ((decoder is 'get_bytes') or
-                        (decoder is 'get_cablespec')):
+                    if ((decoder == 'get_bytes') or
+                        (decoder == 'get_cablespec')):
                         valstr = hexstr(val)
                     else:
                         valstr = str(val)

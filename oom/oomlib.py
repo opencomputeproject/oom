@@ -198,7 +198,7 @@ class Port:
         self.readcount = 0
 
         # copy the C character array into a more manageable python string
-        self.port_name = bytearray(cport.name).rstrip('\0')
+        self.port_name = bytearray(cport.name).rstrip(b'\0')
         if oom_portlist_nokeys == 0:
             self.port_type = get_port_type(self)
 

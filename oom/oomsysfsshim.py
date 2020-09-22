@@ -92,7 +92,7 @@ class ports:
 
                 # special code for each style of naming...
                 # OPTOE uses an 'eeprom' file and a port name (not number)
-                if key is 'OPTOE':
+                if key == 'OPTOE':
                     # device names look like '<num>-00<addr>',
                     # eg 54-0050.  addr is the i2c address of the
                     # EEPROM.  We want only devices with addr '50'
@@ -100,7 +100,7 @@ class ports:
                         continue
                     portname = portlabel
                 # EEPROM is for switches that use the EEPROM class driver
-                elif key is 'EEPROM':  # verify name is 'port<num>'
+                elif key == 'EEPROM':  # verify name is 'port<num>'
                     # check for two labels (optoe & EEPROM), keep just one
                     duplabelpath = dirpath + name + '/device/port_name'
                     try:
@@ -114,7 +114,7 @@ class ports:
                         continue
                     portname = portlabel
                 # ACCTON uses the i2c devices tree, filled with sfp_* files
-                elif key is 'ACCTON':
+                elif key == 'ACCTON':
                     # Same check as OPTOE, verify i2c address of the device
                     if name[-2:] != '50':
                         continue
@@ -128,7 +128,7 @@ class ports:
                         continue
                     portname = "port" + portlabel
                 # CFP is actually unknown, so simulating simple for now
-                elif key is 'MDIO':
+                elif key == 'MDIO':
                     portname = portlabel
                 else:
                     raise NotImplementedError("OOM designer screwed up")
@@ -136,7 +136,7 @@ class ports:
                 # Looks good, add this as a new port to the list
                 newport = c_port_t()
                 newport.handle = self.portcount
-                if key is "MDIO":
+                if key == "MDIO":
                     newport.oom_class = port_class_e['CFP']
                 else:
                     newport.oom_class = port_class_e['SFF']
