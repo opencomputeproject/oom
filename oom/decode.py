@@ -45,6 +45,13 @@ mod_id_dict = {0x00: 'Unknown',
                0x15: 'Sheilded Mini Multilane HD 8x Fanout Cable',
                0x16: 'CDFP',
                0x17: 'microQSFP',
+               0x18: 'QSFP-DD Double Density 8x (INF-8628)',
+               0x19: 'OSFP 8x Pluggable Transceiver',
+               0x1A: 'SFP-DD Double Density 2X Pluggable Transceiver',
+               0x1B: 'DSFP Dual Small Form Factor Pluggable Transceiver',
+               0x1C: 'x4 MiniLink/OcuLink',
+               0x1D: 'x8 Minilink',
+               0x1E: 'QSFP+ or later with CMIS spec',
 
                # next values are CFP types. Note that their spec
                # (CFP MSA Management Interface Specification
