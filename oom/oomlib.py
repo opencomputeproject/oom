@@ -18,10 +18,10 @@ from ctypes import *
 import importlib
 import glob
 import sys
-from oomtypes import c_port_t
-from oomtypes import port_class_e
-from decode import collapse_cfp
-from decode import expand_cfp
+from .oomtypes import c_port_t
+from .oomtypes import port_class_e
+from .decode import collapse_cfp
+from .decode import expand_cfp
 import re
 
 
@@ -198,7 +198,7 @@ class Port:
         self.readcount = 0
 
         # copy the C character array into a more manageable python string
-        self.port_name = bytearray(cport.name).rstrip(b'\0')
+        self.port_name = bytearray(cport.name).decode('utf-8').rstrip('\0')
         if oom_portlist_nokeys == 0:
             self.port_type = get_port_type(self)
 
@@ -208,7 +208,6 @@ class Port:
             self.wmap = {}
             for func in keyfile_fns:  # try each keyfile for appropriate keys
                 func(self)
-        return(None)
 
     def add_addr(self, address):
         self.pages.update({address: {}})
@@ -265,11 +264,17 @@ def oom_get_portlist():
 def get_port_type(port):
     if port.c_port.oom_class == port_class_e['SFF']:
         data = oom_get_cached_sff(port, 0xA0, 0, 0, 1)
-        ptype = ord(data[0])
+        if(isinstance(data[0], bytes) or isinstance(data[0], str)):
+            ptype = ord(data[0])
+        else:
+            ptype = data[0]
     elif port.c_port.oom_class == port_class_e['CFP']:
         data = oom_get_memory_cfp(port, 0x8000, 1)
         # CFP types overlap with i2c types, so OOM adds 0x100 to disambiguate
-        ptype = ord(data[1]) + 0x100
+        if(isinstance(data[1], bytes) or isinstance(data[1], str)):
+            ptype = ord(data[1]) + 0x100
+        else:
+            ptype = data[1] + 0x100
     else:
         ptype = port_type_e['UNKNOWN']
     return (ptype)
@@ -480,7 +485,7 @@ def oom_get_memory(port, function):
 def print_block_hex(data, initial):
     dataptr = 0
     bytesleft = len(data)
-    lines = (bytesleft + 15) / 16
+    lines = int((bytesleft + 15) / 16)
     lineaddr = initial
     for i in range(lines):
         outstr = "%.4xx:  " % lineaddr
@@ -501,12 +506,12 @@ def print_block_hex(data, initial):
                 bytesleft -= 1
                 lineaddr += 1
             outstr += ' '
-        print outstr
+        print(outstr)
 
 
 # helper routine to return module type as string (reverse port_type_e)
 def type_to_str(modtype):
-    for tname, mtype in port_type_e.iteritems():
+    for tname, mtype in port_type_e.items():
         if mtype == modtype:
             return tname
     return ''

@@ -9,7 +9,7 @@ setup(
     author="Don Bollinger",
     author_email="don@thebollingers.org",
     license="MIT",
-    packages=find_packages(),
+    packages=find_packages(include=["oom"]),
     package_data={
                   'oom':
                   ['installedshim_parms',

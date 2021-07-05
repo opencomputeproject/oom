@@ -9,9 +9,9 @@
 #
 # ////////////////////////////////////////////////////////////////////
 
-import oomlib
-from oomlib import print_block_hex
-from decode import get_string
+from . import oomlib
+from .oomlib import print_block_hex
+from .decode import get_string
 
 
 """

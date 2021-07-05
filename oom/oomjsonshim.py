@@ -17,7 +17,7 @@
 import requests
 import json
 import base64
-from oomtypes import c_port_t
+from .oomtypes import c_port_t
 
 
 # Set the default URL for the remote switch
@@ -34,7 +34,7 @@ def setparms(parms):
     preamble = 'http://'
     if temp[:7] != preamble:
         temp = preamble + temp
-    print 'Using URL: %s' % temp
+    print('Using URL: %s' % temp)
     url.remote = temp
 
 

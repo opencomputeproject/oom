@@ -108,8 +108,8 @@ app = Flask(__name__)
 @app.route('/OOM', methods=['GET'])
 def getOOMdata():
     command = request.json
-    print 'command:'
-    print command
+    print('command:')
+    print(command)
     # 'ogp0' means oom_get_portlist(0, 0)
     if command['cmd'] == 'ogp0':
         js = oom_get_json_portlist_zeros()

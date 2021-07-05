@@ -11,12 +11,15 @@
 #
 # ////////////////////////////////////////////////////////////////////
 
-from oomtypes import c_port_t
-from oomtypes import port_class_e
+from .oomtypes import c_port_t
+from .oomtypes import port_class_e
 from ctypes import create_string_buffer
 import errno
 import os
+import re
+from threading import Lock
 
+mutex = Lock()
 
 #
 # where to find eeprom data:  '<root>/<device_name>/<eeprom>'
@@ -35,6 +38,12 @@ class paths_class:
             'ACCTON': ('/sys/bus/i2c/devices/',
                        '/sfp_port_number',
                        '/sfp_eeprom'),
+            'ACCTON_AS5916_54XKS': ('/sys/devices/platform/as5916_54xks_sfp/',
+                       '',   # Accton as5916_54xks platform port name can be found from eeprom filename
+                       ''),
+            'ACCTON_AS7316_26XB': ('/sys/devices/platform/as7316_26xb_sfp/',
+                       '',   # Accton as7316_26xb platform port name can be found from eeprom filename
+                       ''),
             'EEPROM': ('/sys/class/eeprom_dev/',
                        '/label',
                        '/device/eeprom'),
@@ -65,6 +74,7 @@ class ports:
         # fill an array of ports
         self.portcount = 0
         self.portname_list = []
+        portname = None
         pyportlist = []
 
         # sequence through known styles, looking for optical devices
@@ -79,16 +89,15 @@ class ports:
                 continue
             for name in filenames:   # candidates...  screen them
                 eeprompath = dirpath + name + eepromname
-                try:
-                    fd = open(eeprompath, 'r')
-                except:
+                if not os.path.exists(eeprompath):
                     continue
-                namepath = dirpath + name + portpath
-                try:
-                    fd = open(namepath, 'r')
-                    portlabel = fd.readline()
-                except:
-                    continue
+                if key != 'ACCTON_AS5916_54XKS' and key != 'ACCTON_AS7316_26XB':
+                    namepath = dirpath + name + portpath
+                    try:
+                        with open(namepath, 'r') as fd:
+                            portlabel = fd.readline()
+                    except Exception as e:
+                        continue
 
                 # special code for each style of naming...
                 # OPTOE uses an 'eeprom' file and a port name (not number)
@@ -99,20 +108,19 @@ class ports:
                     if name[-2:] != '50':
                         continue
                     portname = portlabel
+
                 # EEPROM is for switches that use the EEPROM class driver
                 elif key == 'EEPROM':  # verify name is 'port<num>'
                     # check for two labels (optoe & EEPROM), keep just one
                     duplabelpath = dirpath + name + '/device/port_name'
-                    try:
-                        fd = open(duplabelpath, 'r')
+                    if os.path.exists(duplabelpath):
                         continue   # if duplicate label, bail out
-                    except:
-                        pass
                     if len(portlabel) < 5:
                         continue
                     if portlabel[0:4] != 'port':
                         continue
                     portname = portlabel
+
                 # ACCTON uses the i2c devices tree, filled with sfp_* files
                 elif key == 'ACCTON':
                     # Same check as OPTOE, verify i2c address of the device
@@ -127,9 +135,26 @@ class ports:
                     if label == 0:  # note, non-numeric labels return 0 also
                         continue
                     portname = "port" + portlabel
+
                 # CFP is actually unknown, so simulating simple for now
                 elif key == 'MDIO':
                     portname = portlabel
+
+                elif key == 'ACCTON_AS5916_54XKS' or key == 'ACCTON_AS7316_26XB':
+                    m = re.match("module_eeprom_(\d+)", name)
+                    if not m:
+                        # Couldn't able to locate the device files in any of the specified paths
+                        continue
+                    portlabel = m.group(1)+"\n"
+                    # Get the port number for this eeprom
+                    for i in range(len(portlabel)):
+                        if portlabel[i] == 0xA:
+                            portlabel[i] = '\0'
+                    label = int(portlabel)
+                    if label == 0:  # note, non-numeric labels return 0 also
+                        continue
+                    portname = "port" + portlabel
+
                 else:
                     raise NotImplementedError("OOM designer screwed up")
 
@@ -229,12 +254,15 @@ def open_and_seek(cport, address, page, offset, flag):
     if (address < 0xA0) or (address == 0xA1) or (address > 0xA2):
         return -errno.EINVAL
 
-    # open the the EEPROM file
-    handle = gethandle(cport)
-    eeprompath = allports.portname_list[handle]
+    try:
+        # open the the EEPROM file
+        handle = gethandle(cport)
+        eeprompath = allports.portname_list[handle]
+    except Exception as E:
+        return None
     try:
         fd = open(eeprompath, flag, 0)
-    except IOError, err:
+    except IOError as err:
         return -err.errno
 
     # calculate the place to start reading/writing data
@@ -250,7 +278,7 @@ def open_and_seek(cport, address, page, offset, flag):
 
     try:
         fd.seek(seekto)
-    except IOError, err:
+    except IOError as err:
         return -err.errno
 
     return fd
@@ -263,15 +291,22 @@ def oom_get_memory_sff(cport, address, page, offset, length, data):
 
     if length != len(data):
         return -errno.EINVAL
-    fd = open_and_seek(cport, address, page, offset, 'rb')
-    if (fd < 0):
-        return fd
+    with mutex:
+        fd = open_and_seek(cport, address, page, offset, 'rb')
+        if ((fd is None) or (fd.fileno() < 0)):
+            try:
+                fd.close()
+            except:
+                pass
+            return fd
 
-    # and read it!
-    try:
-        buf = fd.read(length)
-    except IOError, err:
-        return -err.errno
+        # and read it!
+        try:
+            buf = fd.read(length)
+        except IOError as err:
+            return -err.errno
+        finally:
+            fd.close()
 
     # copy the buffer into the data array
     ptr = 0
@@ -286,17 +321,27 @@ def oom_get_memory_sff(cport, address, page, offset, length, data):
 #
 def oom_set_memory_sff(cport, address, page, offset, length, data):
 
-    if length > len(data):
+    if not data or length > len(data):
         return -errno.EINVAL
-    fd = open_and_seek(cport, address, page, offset, 'rb+')
-    if (fd < 0):
-        return fd
+    with mutex:
+        fd = open_and_seek(cport, address, page, offset, 'rb+')
+        if(isinstance(fd, int)):
+            if (fd < 0):
+                return fd
+        elif ((fd is None) or (fd.fileno() < 0)):
+            try:
+                fd.close()
+            except:
+                pass
+            return fd
 
-    # and write it!
-    try:
-        fd.write(data[0:length])
-    except IOError, err:
-        return -err.errno
+        # and write it!
+        try:
+            fd.write(data[0:length])
+        except IOError as err:
+            return -err.errno
+        finally:
+            fd.close()
 
     # success
     return length
@@ -312,7 +357,7 @@ def open_and_seek_cfp(cport, address, flag):
     eeprompath = allports.portname_list[handle]
     try:
         fd = open(eeprompath, flag, 0)
-    except IOError, err:
+    except IOError as err:
         return -err.errno
 
     # seek to the addressed location
@@ -320,7 +365,7 @@ def open_and_seek_cfp(cport, address, flag):
     # hence, multiply the requested address by 2 to seek to the right place
     try:
         fd.seek(address * 2)
-    except IOError, err:
+    except IOError as err:
         return -err.errno
 
     return fd
@@ -341,8 +386,10 @@ def oom_get_memory_cfp(cport, address, length, data):
     # and read it!
     try:
         buf = fd.read(length * 2)
-    except IOError, err:
+    except IOError as err:
         return -err.errno
+    finally:
+        fd.close()
 
     # copy the buffer into the data array
     ptr = 0
@@ -366,8 +413,10 @@ def oom_set_memory_cfp(cport, address, length, data):
     # and write it!
     try:
         fd.write(data[0:(length*2)])
-    except IOError, err:
+    except IOError as err:
         return -err.errno
+    finally:
+        fd.close()
 
     # success
     return length

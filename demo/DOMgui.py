@@ -230,7 +230,7 @@ class draw_DOM:
 if __name__ == "__main__":
     portlist = oom_get_portlist()
     port = portlist[0]
-    print oom_get_keyvalue(port, "VENDOR_PN")
+    print(oom_get_keyvalue(port, "VENDOR_PN"))
 
     root = Tk()
     draw_DOM(root, port)

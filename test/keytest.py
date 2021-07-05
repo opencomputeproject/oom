@@ -12,8 +12,7 @@
 # ////////////////////////////////////////////////////////////////////
 
 from oom import *                   # the published OOM Northbound API
-from oom.decode import hexstr           # helper function from the decode pack
-
+from oom.decode import get_hexstr   # helper function from the decode pack
 
 # open port 0
 port = oom_get_port(0)
@@ -25,29 +24,29 @@ for keyx in sorted(keymap.keys()):
     if len(keymap[keyx]) == 6:
         if keymap[keyx][1] == 'get_bytes':
             val = oom_get_keyvalue(port, keyx)
-            print keyx + ': ' + hexstr(val)
+            print(keyx + ': ' + get_hexstr(val))
         else:
-            print keyx + ': ' + str(oom_get_keyvalue(port, keyx))
+            print(keyx + ': ' + str(oom_get_keyvalue(port, keyx)))
 
 # similarly, get the function keys for this module type,
 # report their values for this port
-print ' '
-print 'functions, with their keys and values:'
-print ' '
+print(' ')
+print('functions, with their keys and values:')
+print(' ')
 fnkeys = port.fmap
 for keyx in fnkeys:
     val = oom_get_memory(port, keyx)
-    print keyx + ': '
-    print str(val)
-    print
+    print(keyx + ': ')
+    print(str(val))
+    print()
 
 
 # get the writable keys, for each, read the current value, write it back
-print ' '
-print 'writable keys, with before and after values (should match)'
+print(' ')
+print('writable keys, with before and after values (should match)')
 wmapkeys = port.wmap
 for keyx in sorted(wmapkeys):
     val = oom_get_keyvalue(port, keyx)
     retval = oom_set_keyvalue(port, keyx, val)
     newval = oom_get_keyvalue(port, keyx)
-    print keyx + ': ' + str(val) + ',' + str(newval)
+    print(keyx + ': ' + str(val) + ',' + str(newval))

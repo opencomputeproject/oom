@@ -15,7 +15,7 @@ If -f is not specified, print to stdout
 """
 
 from oom import *
-from oom.decode import hexstr, mod_id
+from oom.decode import get_hexstr, mod_id
 from datetime import datetime
 import sys
 
@@ -41,66 +41,66 @@ def iop(port, fileflag):
         sys.stdout = open(outfilename, 'w+')
 
     # identify the module
-    print
-    print 'Port: %s' % port.port_name
-    print '%s %s module' % \
+    print()
+    print('Port: %s' % port.port_name)
+    print('%s %s module' % \
         (oom_get_keyvalue(port, 'VENDOR_NAME'),
-         mod_id(port.port_type))
-    print 'Part Number: %s  Serial Number: %s' % \
+         mod_id(port.port_type)))
+    print('Part Number: %s  Serial Number: %s' % \
         (oom_get_keyvalue(port, 'VENDOR_PN'),
-         oom_get_keyvalue(port, 'VENDOR_SN'))
-    print outfilename
+         oom_get_keyvalue(port, 'VENDOR_SN')))
+    print(outfilename)
 
     # print out the Serial ID keys
-    print
+    print()
     keys = port.fmap['SERIAL_ID']
-    print 'SERIAL_ID Keys:'
+    print('SERIAL_ID Keys:')
     for key in sorted(keys):
         val = oom_get_keyvalue(port, key)
         decoder = port.mmap[key][1]
         if ((decoder == 'get_bytes') or (decoder == 'get_cablespec')):
-            valstr = hexstr(val)
+            valstr = get_hexstr(val)
         else:
             valstr = str(val)
-        print '%s: %s' % (key, valstr)
+        print('%s: %s' % (key, valstr))
 
     # print out the Vendor Specific data after the Serial ID data
-    print
+    print()
     vend_specific = ''
     if port.port_type == 0x3 or (port.port_type == 0xB):   # SFP
-        vend_specific = hexstr(oom_get_keyvalue(port, 'VENDOR_SPECIFIC_96'))
+        vend_specific = get_hexstr(oom_get_keyvalue(port, 'VENDOR_SPECIFIC_96'))
     if (port.port_type == 0xD) or (port.port_type == 0x11):  # QSFP+/QSFP28
-        vend_specific = hexstr(oom_get_keyvalue(port, 'VENDOR_SPECIFIC_224'))
-    print 'Vendor Specific: ' + vend_specific
+        vend_specific = get_hexstr(oom_get_keyvalue(port, 'VENDOR_SPECIFIC_224'))
+    print('Vendor Specific: ' + vend_specific)
 
     # dump the raw data from the two most popular blocks, by type
-    print
+    print()
     if port.port_type == 0x3 or (port.port_type == 0xB):  # SFP
-        print 'I2C Address A0h, bytes 0-127, in hex'
+        print('I2C Address A0h, bytes 0-127, in hex')
         print_block_hex(oom_get_memory_sff(port, 0xA0, 0, 0, 128), 0)
-        print
-        print 'I2C Address A2h, bytes 0-127, in hex'
+        print()
+        print('I2C Address A2h, bytes 0-127, in hex')
         print_block_hex(oom_get_memory_sff(port, 0xA2, 0, 0, 128), 0)
 
     if (port.port_type == 0xD) or (port.port_type == 0x11):  # QSFP+/QSFP28
-        print 'I2C Address A0h, bytes 0-127, in hex'
+        print('I2C Address A0h, bytes 0-127, in hex')
         print_block_hex(oom_get_memory_sff(port, 0xA0, 0, 0, 128), 0)
-        print
-        print 'I2C Address A0h, page 0, bytes 128-255, in hex'
+        print()
+        print('I2C Address A0h, page 0, bytes 128-255, in hex')
         print_block_hex(oom_get_memory_sff(port, 0xA0, 0, 128, 128), 0)
 
     # print out all the keys
     keys = port.mmap
-    print 'All Keys:'
-    print
+    print('All Keys:')
+    print()
     for key in sorted(keys):
         val = oom_get_keyvalue(port, key)
         decoder = port.mmap[key][1]
         if ((decoder == 'get_bytes') or (decoder == 'get_cablespec')):
-            valstr = hexstr(val)
+            valstr = get_hexstr(val)
         else:
             valstr = str(val)
-        print '%s: %s' % (key, valstr)
+        print('%s: %s' % (key, valstr))
 
 
 if __name__ == "__main__":
@@ -124,12 +124,12 @@ if __name__ == "__main__":
                 fileflag = parms[1]
 
     if portnum < 0:
-        print "Bad (negative) port number"
+        print("Bad (negative) port number")
         exit()
 
     portlist = oom_get_portlist()
     if len(portlist) == 0:
-        print "Empty portlist, configuration issue?"
+        print("Empty portlist, configuration issue?")
         exit()
 
     if loop == 0:

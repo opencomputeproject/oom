@@ -5,7 +5,7 @@
 #
 from oom import *
 from oom.oomlib import type_to_str
-from oom.decode import hexstr
+from oom.decode import get_hexstr
 from DOMgui import draw_DOM
 import sys
 
@@ -244,7 +244,7 @@ class OOMdemo:
                     decoder = port.mmap[key][1]
                     if ((decoder == 'get_bytes') or
                         (decoder == 'get_cablespec')):
-                        valstr = hexstr(val)
+                        valstr = get_hexstr(val)
                     else:
                         valstr = str(val)
                     endstr = '%s: %s' % (key, valstr)

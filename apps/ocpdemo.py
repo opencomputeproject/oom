@@ -15,7 +15,7 @@
 
 from oom import *                   # the published OOM Northbound API
 from oom.oomlib import type_to_str
-from oom.decode import hexstr           # helper function from the decode pack
+from oom.decode import get_hexstr           # helper function from the decode pack
 from time import sleep
 import sys
 
@@ -38,7 +38,7 @@ if (len(parms) > 2):
 
 portlist = oom_get_portlist()
 numports = len(portlist)
-print numports
+print(numports)
 pcycle = 0
 pcount = 0
 try:
@@ -62,13 +62,13 @@ try:
                 if len(port.mmap[key]) >= 6:
                     if port.mmap[key][1] == 'get_bytes':
                         val = oom_get_keyvalue(port, key)
-                        outstr += key + ': ' + hexstr(val) + '; '
+                        outstr += key + ': ' + get_hexstr(val) + '; '
                     else:
                         outstr += key + ': ' \
                                 + str(oom_get_keyvalue(port, key)) + "; "
-            print outstr[0:linelen]
+            print(outstr[0:linelen])
             lines += 1
         pcycle += 1  # it will take a LONG time to roll over
         sleep(2)
 except KeyboardInterrupt:
-    print "Thanks for running the OOM OCP Demo!"
+    print("Thanks for running the OOM OCP Demo!")
