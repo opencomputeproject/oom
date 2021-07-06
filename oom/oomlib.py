@@ -13,8 +13,7 @@
 # ////////////////////////////////////////////////////////////////////
 
 import os
-import struct
-from ctypes import *
+from ctypes import create_string_buffer
 import importlib
 import glob
 import sys
@@ -115,7 +114,7 @@ packagedir = os.path.normpath(os.path.dirname(os.path.realpath(__file__)))
 
 try:
     # first choice for a shim (for legacy reasons) is a compiled C library
-    oomsth.shim = cdll.LoadLibrary(
+    oomsth.shim = cdll.LoadLibrary(\
                     os.path.join(packagedir, 'lib', 'oom_south.so'))
 except:
     # look for an installed shim (default for this system),
@@ -226,7 +225,7 @@ class Port:
 #
 def oom_get_port(n):
     portlist = oom_get_portlist()
-    return(portlist[n])
+    return portlist[n]
 
 
 #
@@ -277,7 +276,7 @@ def get_port_type(port):
             ptype = data[1] + 0x100
     else:
         ptype = port_type_e['UNKNOWN']
-    return (ptype)
+    return ptype
 
 
 #
@@ -309,7 +308,7 @@ def oom_get_cached_sff(port, address, page, offset, length):
         data = port.pages[address][pagekey][start: 128]
         data += oom_get_cached_sff(port, address, page, 128,
                                    length - (128 - offset))
-    return(data)
+    return data
 
 
 #
@@ -331,7 +330,7 @@ def oom_get_memory_sff(port, address, page, offset, length):
     else:
         retlen = oomsth.shim.oom_get_memory_sff(byref(port.c_port), address,
                                                 page, offset, length, data)
-    return(data)
+    return data
 
 
 #
@@ -370,7 +369,7 @@ def oom_get_memory_cfp(port, address, length):
     data = create_string_buffer(length*2)  # allocate space in bytes
     port.readcount = port.readcount + 1
     retlen = oomsth.shim.oom_get_memory_cfp(port.c_port, address, length, data)
-    return(data)
+    return data
 
 
 #

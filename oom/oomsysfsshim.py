@@ -13,7 +13,6 @@
 
 from .oomtypes import c_port_t
 from .oomtypes import port_class_e
-from ctypes import create_string_buffer
 import errno
 import os
 import re
@@ -32,23 +31,25 @@ class paths_class:
         # Note that special code below is part of the discovery and
         # recognition process for each style of device naming
         self.locs = {
-            'OPTOE':  ('/sys/bus/i2c/devices/',
-                       '/port_name',
+            'OPTOE':  ('/sys/bus/i2c/devices/',\
+                       '/port_name',\
                        '/eeprom'),
-            'ACCTON': ('/sys/bus/i2c/devices/',
-                       '/sfp_port_number',
+            'ACCTON': ('/sys/bus/i2c/devices/',\
+                       '/sfp_port_number',\
                        '/sfp_eeprom'),
-            'ACCTON_AS5916_54XKS': ('/sys/devices/platform/as5916_54xks_sfp/',
-                       '',   # Accton as5916_54xks platform port name can be found from eeprom filename
+            # Accton as5916_54xks platform port name can be found from eeprom filename
+            'ACCTON_AS5916_54XKS': ('/sys/devices/platform/as5916_54xks_sfp/',\
+                       '',\
                        ''),
-            'ACCTON_AS7316_26XB': ('/sys/devices/platform/as7316_26xb_sfp/',
-                       '',   # Accton as7316_26xb platform port name can be found from eeprom filename
+            # Accton as7316_26xb platform port name can be found from eeprom filename
+            'ACCTON_AS7316_26XB': ('/sys/devices/platform/as7316_26xb_sfp/',\
+                       '',\
                        ''),
-            'EEPROM': ('/sys/class/eeprom_dev/',
-                       '/label',
+            'EEPROM': ('/sys/class/eeprom_dev/',\
+                       '/label',\
                        '/device/eeprom'),
-            'MDIO':   ('/sys/bus/mdio/devices/',
-                       '/mdio_name',
+            'MDIO':   ('/sys/bus/mdio/devices/',\
+                       '/mdio_name',\
                        '/mdio_eeprom'),
             }
 
@@ -96,7 +97,7 @@ class ports:
                     try:
                         with open(namepath, 'r') as fd:
                             portlabel = fd.readline()
-                    except Exception as e:
+                    except:
                         continue
 
                 # special code for each style of naming...
@@ -141,7 +142,7 @@ class ports:
                     portname = portlabel
 
                 elif key == 'ACCTON_AS5916_54XKS' or key == 'ACCTON_AS7316_26XB':
-                    m = re.match("module_eeprom_(\d+)", name)
+                    m = re.match(r"module_eeprom_(\d+)", name)
                     if not m:
                         # Couldn't able to locate the device files in any of the specified paths
                         continue
@@ -325,8 +326,8 @@ def oom_set_memory_sff(cport, address, page, offset, length, data):
         return -errno.EINVAL
     with mutex:
         fd = open_and_seek(cport, address, page, offset, 'rb+')
-        if(isinstance(fd, int)):
-            if (fd < 0):
+        if isinstance(fd, int):
+            if fd < 0:
                 return fd
         elif ((fd is None) or (fd.fileno() < 0)):
             try:
@@ -380,7 +381,7 @@ def oom_get_memory_cfp(cport, address, length, data):
         return -errno.EINVAL
 
     fd = open_and_seek_cfp(cport, address, 'rb')
-    if (fd < 0):
+    if fd < 0:
         return fd
 
     # and read it!
@@ -396,7 +397,7 @@ def oom_get_memory_cfp(cport, address, length, data):
     for c in buf:
         data[ptr] = c
         ptr += 1
-    return (len(data)/2)
+    return len(data)/2
 
 
 #
@@ -407,7 +408,7 @@ def oom_set_memory_cfp(cport, address, length, data):
     if length > len(data)/2:
         return -errno.EINVAL
     fd = open_and_seek_cfp(cport, address, 'rb+')
-    if (fd < 0):
+    if fd < 0:
         return fd
 
     # and write it!

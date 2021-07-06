@@ -11,7 +11,7 @@
 # ////////////////////////////////////////////////////////////////////
 
 import binascii
-from ctypes import *
+from ctypes import create_string_buffer
 from math import log10
 
 
@@ -69,10 +69,11 @@ mod_id_dict = {0x00: 'Unknown',
 
 
 def get_voltage(x):  # return in V
+    """ Decodes and returns voltage value(in V) from the raw data"""
     if len(x) != 2:
         print("wrong voltage format")
         return
-    if(isinstance(x[0], bytes) or isinstance(x[0], str)):
+    if isinstance(x[0], (bytes, str)):
         temp = ord(x[0])*256 + ord(x[1])
     else:
         temp = x[0]*256 + x[1]
@@ -81,10 +82,11 @@ def get_voltage(x):  # return in V
 
 
 def get_temperature(x):  # return in 'C
+    """ Decodes and returns temperature value(in *C) from the raw data"""
     if len(x) != 2:
         print("wrong temperature format")
         return
-    if(isinstance(x[0], bytes) or isinstance(x[0], str)):
+    if isinstance(x[0], (bytes, str)):
         temp = ord(x[0])*256 + ord(x[1])
     else:
         temp = x[0]*256 + x[1]
@@ -97,10 +99,11 @@ def get_temperature(x):  # return in 'C
 # note:  get_voltage and get_power are actually identical
 # implemented twice so as not to confuse the maintainer :-)
 def get_power(x):   # return in mW
+    """ Decodes and returns power value(in mW) from the raw data"""
     if len(x) != 2:
         print("wrong power format")
         return
-    if(isinstance(x[0], bytes) or isinstance(x[0], str)):
+    if isinstance(x[0], (bytes, str)):
         temp = ord(x[0])*256 + ord(x[1])
     else:
         temp = x[0]*256 + x[1]
@@ -109,20 +112,23 @@ def get_power(x):   # return in mW
 
 
 def mwtodbm(x):
+    """ Converts value in mW to dbm"""
     if x < .001:
         return -30  # by convention, -30dbm is the lowest legal value
     return 10 * log10(x)
 
 
 def get_power_dbm(x):   # return power in dbm (10*log10(power-in-mw))
+    """ Decodes and returns power value(in dbm) from the raw data"""
     return mwtodbm(get_power(x))
 
 
 def get_current(x):  # return in mA
+    """ Decodes and returns current value(in mA) from the raw data"""
     if len(x) != 2:
         print("wrong bias format")
         return
-    if (isinstance(x[0], bytes) or isinstance(x[0], str)):
+    if isinstance(x[0], (bytes, str)):
         temp = ord(x[0])*256 + ord(x[1])
     else:
         temp = x[0]*256 + x[1]
@@ -131,11 +137,12 @@ def get_current(x):  # return in mA
 
 
 def get_signed_current(x):  # return in mA
+    """ Decodes and returns current value(in mA) from the raw data"""
     if len(x) != 2:
         print("wrong bias format")
         return
 
-    if (isinstance(x[0], bytes) or isinstance(x[0], str)):
+    if isinstance(x[0], (bytes, str)):
         temp = ord(x[0])*256 + ord(x[1])
     else:
         temp = x[0]*256 + x[1]
@@ -146,8 +153,9 @@ def get_signed_current(x):  # return in mA
 
 
 def get_string(x):  # copy the cbuffer into a string
+    """ Decodes and returns string from the raw data"""
     result = ''
-    if(isinstance(x, bytes)):
+    if isinstance(x, bytes):
         result = x.decode('utf-8')
     else:
         result = x.value.decode('utf-8')
@@ -155,16 +163,18 @@ def get_string(x):  # copy the cbuffer into a string
 
 
 def set_string(old, new):  # trivial, but needed for oom_set_keyvalue()
+    """ Sets string. Trivial, but needed for oom_set_keyvalue()"""
     return new
 
 
 def mod_id(x):  # return Module ID
+    """ Decodes and returns module ID from the raw data"""
     return mod_id_dict.get(x, 'Reserved')
 
 
 def get_bytes(x):
 
-    if(isinstance(x, bytes)):
+    if isinstance(x, bytes):
         return x
     return bytes(x[:])
 
@@ -175,7 +185,7 @@ def get_int(x):
         print("too many bytes to decode into 32 bit int")
         return
     for i in x:
-        if(isinstance(i, int)):
+        if isinstance(i, int):
             result = (result * 256) + i
         else:
             result = (result * 256) + ord(i)
@@ -189,48 +199,48 @@ def get_intX10(x):
 # return 2 bits
 
 def get2_bits(x, n):
-    if(isinstance(x[0], bytes) or isinstance(x[0], str)):
+    if isinstance(x[0], (bytes, str)):
         temp = ord(x[0])
     else:
         temp = x[0]
     temp = temp >> n
     temp %= 4
-    return(temp)
+    return temp
 
 
 def get2_bit6(x):
-    return(get2_bits(x, 6))
+    return get2_bits(x, 6)
 
 
 def get2_bit4(x):
-    return(get2_bits(x, 4))
+    return get2_bits(x, 4)
 
 
 def get2_bit2(x):
-    return(get2_bits(x, 2))
+    return get2_bits(x, 2)
 
 
 def get2_bit0(x):
-    return(get2_bits(x, 0))
+    return get2_bits(x, 0)
 
 
 def get3_bit6(x):  # get bits 6, 5, 4
-    if(isinstance(x[0], bytes) or isinstance(x[0], str)):
+    if isinstance(x[0], (bytes, str)):
         temp = ord(x[0])
     else:
         temp = x[0]
     temp = temp >> 4
     temp %= 8
-    return(temp)
+    return temp
 
 
 def get3_bit2(x):  # get bits 2, 1, 0
-    if(isinstance(x[0], bytes) or isinstance(x[0], str)):
+    if isinstance(x[0], (bytes, str)):
         temp = ord(x[0])
     else:
         temp = x[0]
     temp %= 8
-    return(temp)
+    return temp
 
 
 # from 'x', extract 'numbits', starting at 'offset' and going DOWN
@@ -243,7 +253,7 @@ def get_bits(x, offset, numbits):
         print('get_bits bad parameters - len(x): %d, offset: %d, numbits: %d'\
                 % (len(x), offset, numbits))
         return
-    if(isinstance(x[0], bytes) or isinstance(x[0], str)):
+    if isinstance(x[0], (bytes, str)):
         temp = ord(x[0])
         if len(x) == 2:
             temp *= 256
@@ -259,7 +269,7 @@ def get_bits(x, offset, numbits):
 
 
 def get_bitrate(x):         # returns nominal bit rate IN MB/s
-    if(isinstance(x[0], bytes) or isinstance(x[0], str)):
+    if isinstance(x[0], (bytes, str)):
         rate = ord(x[0])
     else:
         rate = x[0]
@@ -269,14 +279,14 @@ def get_bitrate(x):         # returns nominal bit rate IN MB/s
     # SFP uses byte 66 (vs byte 12), hence offset is 54 bytes
     # QSFP uses byte 222 (vs byte 140), hence offset is 82 bytes
     # both specify rate in units of 250Mb for extended byte
-    if (rate == 255):
-        if (len(x) == 55):  # SFP
-            if(isinstance(x[54], bytes) or isinstance(x[54], str)):
+    if rate == 255:
+        if len(x) == 55:  # SFP
+            if isinstance(x[54], (bytes, str)):
                 rate = ord(x[54]) * 250
             else:
                 rate = x[54] * 250
-        elif (len(x) == 83):   # QSFP+
-            if(isinstance(x[82], bytes) or isinstance(x[82], str)):
+        elif len(x) == 83:   # QSFP+
+            if isinstance(x[82], (bytes, str)):
                 rate = ord(x[82]) * 250
             else:
                 rate = x[82] * 250
@@ -289,11 +299,11 @@ def get_bitrate(x):         # returns nominal bit rate IN MB/s
 
 
 def get_brmax(x):         # returns max bit rate IN MB/s
-    if (len(x) < 56):
+    if len(x) < 56:
         print("can't decode max bit rate")
         return
 
-    if(isinstance(x[0], bytes) or isinstance(x[0], str)):
+    if isinstance(x[0], (bytes, str)):
         rate = ord(x[0])
 
         # this is tricky...  If byte 12 is 0xFF, then the bit rate is in
@@ -322,10 +332,10 @@ def get_brmax(x):         # returns max bit rate IN MB/s
 
 
 def get_brmin(x):         # returns minimum bit rate IN MB/s
-    if (len(x) < 56):
+    if len(x) < 56:
         print("can't decode min bit rate")
         return
-    if(isinstance(x[0], bytes) or isinstance(x[0], str)):
+    if isinstance(x[0], (bytes, str)):
         rate = ord(x[0])
 
         # this is tricky...  If byte 12 is 0xFF, then the bit rate is in
@@ -353,38 +363,38 @@ def get_brmin(x):         # returns minimum bit rate IN MB/s
 
 
 def get_length_km(x):   # returns supported link length in meters
-    if(isinstance(x[0], bytes) or isinstance(x[0], str)):
+    if isinstance(x[0], (bytes, str)):
         return ord(x[0]) * 1000
     else:
         return x[0] * 1000
 
 
 def get_length_100m(x):   # returns supported link length in meters
-    if(isinstance(x[0], bytes) or isinstance(x[0], str)):
+    if isinstance(x[0], (bytes, str)):
         return ord(x[0]) * 100
     else:
         return x[0] * 100
 
 
 def get_length_10m(x):   # returns supported link length in meters
-    if(isinstance(x[0], bytes) or isinstance(x[0], str)):
+    if isinstance(x[0], (bytes, str)):
         return ord(x[0]) * 10
     else:
         return x[0] * 10
 
 
 def get_length_2m(x):   # returns supported link length in meters
-    if(isinstance(x[0], bytes) or isinstance(x[0], str)):
+    if isinstance(x[0], (bytes, str)):
         return ord(x[0]) * 2
     else:
         return x[0] * 2
 
 
 def get_length_omcu(x):   # SFP: length in meters, optical OR COPPER
-    if (len(x) < 11):
+    if len(x) < 11:
         print("can't decode OM4/CU max cable length")
         return
-    if(isinstance(x[0], bytes) or isinstance(x[0], str)):
+    if isinstance(x[0], (bytes, str)):
         valid = ord(x[0])    # get byte 8
         valid %= 16          # strip bits above 3
         valid /= 4           # lose bits below 2
@@ -401,10 +411,10 @@ def get_length_omcu(x):   # SFP: length in meters, optical OR COPPER
 
 
 def get_length_omcu2(x):   # QSFP+: length in meters, optical OR COPPER
-    if (len(x) < 2):
+    if len(x) < 2:
         print("can't decode OM4/CU max cable length")
         return
-    if(isinstance(x[1], bytes) or isinstance(x[1], str)):
+    if isinstance(x[1], (bytes, str)):
         txtech = ord(x[1])/16     # Transmitter Technology, byte 147, bits 7-4
         if txtech == 0:      # 850 nm VCSEL
             return ord(x[0]) * 2  # OM4, stored value is in units of 2 meters
@@ -417,12 +427,12 @@ def get_length_omcu2(x):   # QSFP+: length in meters, optical OR COPPER
 
 
 def get_wavelength(x):   # SFP: requires byte 8 and byte 60, 61
-    if (len(x) < 54):
+    if len(x) < 54:
         print("can't decode wavelength")
         return
 
     wavelength = 0
-    if(isinstance(x[0], bytes) or isinstance(x[0], str)):
+    if isinstance(x[0], (bytes, str)):
         valid = ord(x[0])    # get byte 8
         valid %= 16          # strip bits above 3
         valid /= 4           # lose bits below 2
@@ -438,10 +448,10 @@ def get_wavelength(x):   # SFP: requires byte 8 and byte 60, 61
 
 
 def get_cablespec(x):    # requires byte 8 and byte 60, 61
-    if (len(x) < 54):
+    if len(x) < 54:
         print("can't decode cable spec")
         return
-    if(isinstance(x[0], bytes) or isinstance(x[0], str)):
+    if isinstance(x[0], (bytes, str)):
         valid = ord(x[0])    # get byte 8
     else:
         valid = x[0]    # get byte 8
@@ -454,19 +464,19 @@ def get_cablespec(x):    # requires byte 8 and byte 60, 61
 
 
 def get_wavelength2(x):   # QSFP: requires byte 147, 186, 187
-    if (len(x) < 41):
+    if len(x) < 41:
         print("can't decode wavelength")
         return
-    if(isinstance(x[1], bytes) or isinstance(x[1], str)):
+    if isinstance(x[1], (bytes, str)):
         txtech = ord(x[1])/16     # Transmitter Technology, byte 147, bits 7-4
         if txtech >= 10:    # copper technology
-            return(0)
+            return 0
         wavelen = ord(x[39])*256 + ord(x[40])
         wavelen = wavelen * 0.05  # value is 20ths of a nanometer!
     else:
         txtech = x[1]/16     # Transmitter Technology, byte 147, bits 7-4
         if txtech >= 10:    # copper technology
-            return(0)
+            return 0
         wavelen = x[39]*256 + x[40]
         wavelen = wavelen * 0.05  # value is 20ths of a nanometer!
 
@@ -474,10 +484,10 @@ def get_wavelength2(x):   # QSFP: requires byte 147, 186, 187
 
 
 def get_wave_tol(x):   # 2 bytes, in 200ths of a nm, return value in nm
-    if (len(x) < 2):
+    if len(x) < 2:
         print("can't decode wavelength tolerance")
         return
-    if(isinstance(x[0], bytes) or isinstance(x[0], str)):
+    if isinstance(x[0], (bytes, str)):
         wave_tol = ord(x[0])*256 + ord(x[1])
     else:
         wave_tol = x[0]*256 + x[1]
@@ -486,42 +496,42 @@ def get_wave_tol(x):   # 2 bytes, in 200ths of a nm, return value in nm
 
 
 def get_CU_2_5(x):    # requires byte 147, 186
-    if (len(x) < 40):
+    if len(x) < 40:
         print("can't decode copper attenuation")
         return
-    if(isinstance(x[1], bytes) or isinstance(x[1], str)):
+    if isinstance(x[1], (bytes, str)):
         txtech = ord(x[1])/16     # Transmitter Technology, byte 147, bits 7-4
         if txtech >= 10:    # copper technology
-            return(ord(x[39]))
+            return ord(x[39])
     else:
         txtech = x[1]/16     # Transmitter Technology, byte 147, bits 7-4
         if txtech >= 10:    # copper technology
-            return(x[39])
+            return x[39]
     return 0
 
 
 def get_CU_5_0(x):    # requires byte 147, 187
-    if (len(x) < 41):
+    if len(x) < 41:
         print("can't decode copper attenuation")
         return
-    if(isinstance(x[1], bytes) or isinstance(x[1], str)):
+    if isinstance(x[1], (bytes, str)):
         txtech = ord(x[1])/16     # Transmitter Technology, byte 147, bits 7-4
         if txtech >= 10:    # copper technology
-            return(ord(x[40]))
+            return ord(x[40])
     else:
         txtech = x[1]/16     # Transmitter Technology, byte 147, bits 7-4
         if txtech >= 10:    # copper technology
-            return(x[40])
+            return x[40]
 
     return 0
 
 
 def get_freq(x):    # Extract frequency (CFP)
-    if (len(x) < 4):
+    if len(x) < 4:
         print("can't decode frequency")
         return
 
-    if(isinstance(x[0], bytes) or isinstance(x[0], str)):
+    if isinstance(x[0], (bytes, str)):
         # low order bits of first two words are freq in THz
         freq = ord(x[0]) * 256
         freq += ord(x[1])
@@ -542,7 +552,7 @@ def get_freq(x):    # Extract frequency (CFP)
 def get_hexstr(x):
     result = ''
     for i in x:
-        if(isinstance(i, int)):
+        if isinstance(i, int):
             result += hex(i)
         else:
             result += hex(ord(i))

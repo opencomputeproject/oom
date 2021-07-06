@@ -9,8 +9,7 @@
 # ////////////////////////////////////////////////////////////////////
 
 import struct
-from ctypes import *
-
+from ctypes import Structure, c_void_p, c_int, c_ubyte
 
 #
 # This class recreates the port structure in the southbound API
