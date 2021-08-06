@@ -30,19 +30,19 @@ for keyx in sorted(keymap.keys()):
 
 # similarly, get the function keys for this module type,
 # report their values for this port
-print(' ')
+print("")
 print('functions, with their keys and values:')
-print(' ')
+print("")
 fnkeys = port.fmap
 for keyx in fnkeys:
     val = oom_get_memory(port, keyx)
     print(keyx + ': ')
     print(str(val))
-    print()
+    print("")
 
 
 # get the writable keys, for each, read the current value, write it back
-print(' ')
+print("")
 print('writable keys, with before and after values (should match)')
 wmapkeys = port.wmap
 for keyx in sorted(wmapkeys):

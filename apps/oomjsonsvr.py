@@ -46,16 +46,9 @@ def oom_set_json_memory_sff(cport, address, page, offset, length, data):
 
 
 def matchport(cport, portlist):
-    temp = cport.handle  # kludge, python thinks 0 is 'None'
-    if temp is None:
-        temp = 0
     for port in portlist:
-        temp2 = port.c_port.handle
-        if temp2 is None:
-            temp2 = 0
-        if temp == temp2:
-            if port.port_name == bytearray(cport.name).rstrip('\0'):
-                return port
+        if cport.handle == port.c_port.handle:
+            return port
     return None
 
 

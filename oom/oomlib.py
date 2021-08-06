@@ -488,7 +488,7 @@ def print_block_hex(data, initial):
     lineaddr = initial
     for i in range(lines):
         outstr = "%.4xx:  " % lineaddr
-        blocks = (bytesleft + 3) / 4
+        blocks = int((bytesleft + 3) / 4)
         if blocks > 4:
             blocks = 4
         for j in range(blocks):

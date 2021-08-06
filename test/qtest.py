@@ -20,7 +20,7 @@ from oom.oomlib import print_block_hex
 port = oom_get_port(5)
 print('0xA0, page 0, offset 0, 128 bytes')
 print_block_hex(oom_get_memory_sff(port, 0xA0, 0, 0, 128), 0)
-print()
+print("")
 print('0xA0, page 0, offset 128, 128 bytes')
 print_block_hex(oom_get_memory_sff(port, 0xA0, 0, 128, 128), 128)
 
@@ -46,7 +46,7 @@ for keyx in fnkeys:
     val = oom_get_memory(port, keyx)
     print(keyx + ': ')
     print(str(val))
-    print()
+    print("")
 
 # get the writable keys, for each, read the current value, write it back
 print(' ')

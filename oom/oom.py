@@ -10,6 +10,8 @@
 # ////////////////////////////////////////////////////////////////////
 
 from . import oomlib
+from .oomlib import print_block_hex
+from .decode import get_string
 
 """
 The members of the port class are:

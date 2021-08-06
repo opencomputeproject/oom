@@ -19,11 +19,11 @@ print('*******************')
 print('oom_get_memory_sff demo:')
 print('Port 0, address A2h, page 0, offset 0, 128 bytes:')
 print('Port Name: ' + port_list[0].port_name)
-print()
+print("")
 print_block_hex(oom_get_memory_sff(port_list[0], 0xA2, 0, 0, 128), 0)
 
 # demo the get_keyvalue() API
-print()
+print("")
 print('*******************')
 print('oom_get_keyvalue demo:')
 print("VENDOR_SN: " + oom_get_keyvalue(port_list[0], "VENDOR_SN"))
@@ -31,14 +31,14 @@ print("XYZ: " + oom_get_keyvalue(port_list[0], "XYZ"))
 print("IDENTIFIER: " + str(oom_get_keyvalue(port_list[0], "IDENTIFIER")))
 
 # demo the oom_get_memory() API...  DOM shows the values for 5 keys
-print()
+print("")
 print('*******************')
 print('oom_get_memory demo:')
 print("DOM: " + str(oom_get_memory(port_list[0], "DOM")))
 
 # demo the oom_getport() API, by getting port 2.  Note that the keys
 # have different values on this different port
-print()
+print("")
 print('*******************')
 print('oom_get_port demo:')
 portnum = 2
@@ -54,7 +54,7 @@ print('oom_set_memory_sff demo')
 print('0xA2, page 0, offset 128, 16 bytes, initial content:')
 content = oom_get_memory_sff(port, 0xA2, 0, 128, 16)
 print_block_hex(content, 128)
-content = '16 changed bytes'
+content = bytearray('16 changed bytes', 'utf-8')
 length = oom_set_memory_sff(port, 0xA2, 0, 128, 16, content)
 print('0xA2, page 0, offset 128, 16 bytes, new content: \'16 changed bytes\':')
 content = oom_get_memory_sff(port, 0xA2, 0, 128, 16)

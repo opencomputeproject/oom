@@ -381,7 +381,7 @@ def oom_get_memory_cfp(cport, address, length, data):
         return -errno.EINVAL
 
     fd = open_and_seek_cfp(cport, address, 'rb')
-    if fd < 0:
+    if ((fd is None) or (fd.fileno() < 0)):
         return fd
 
     # and read it!
@@ -408,7 +408,7 @@ def oom_set_memory_cfp(cport, address, length, data):
     if length > len(data)/2:
         return -errno.EINVAL
     fd = open_and_seek_cfp(cport, address, 'rb+')
-    if fd < 0:
+    if ((fd is None) or (fd.fileno() < 0)):
         return fd
 
     # and write it!

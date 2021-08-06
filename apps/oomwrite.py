@@ -21,7 +21,7 @@ def add_QSFP_keys(port):
 
 
 # get the requested port number
-print()
+print("")
 parms = sys.argv
 if (len(parms) != 2):
     print('Usage: python portinfo.py <port>')
@@ -47,7 +47,7 @@ if (port == 0):
 # pick where to write based on SFP or QSFP
 if port.port_type == 3:
     print('SFP')
-    print()
+    print("")
 
     # initial state
     print('initial memory content (hex), A2, byte 110:')
@@ -56,7 +56,7 @@ if port.port_type == 3:
     print_block_hex(oom_get_memory_sff(port, 0xA2, 0, 110, 1), 110)
     init_val = oom_get_keyvalue(port, 'SOFT_TX_DISABLE_SELECT')
     print('initial value of SOFT_TX_DISABLE_SELECT: %d' % init_val)
-    print()
+    print("")
 
     # set to '1'
     retval0 = oom_set_keyvalue(port, 'SOFT_TX_DISABLE_SELECT', 1)
@@ -65,7 +65,7 @@ if port.port_type == 3:
     print_block_hex(oom_get_memory_sff(port, 0xA2, 0, 110, 1), 110)
     new_val = oom_get_keyvalue(port, 'SOFT_TX_DISABLE_SELECT')
     print('new value of SOFT_TX_DISABLE_SELECT: %d' % (new_val))
-    print()
+    print("")
 
     # set to 0
     retval1 = oom_set_keyvalue(port, 'SOFT_TX_DISABLE_SELECT', 0)
@@ -74,7 +74,7 @@ if port.port_type == 3:
     print_block_hex(oom_get_memory_sff(port, 0xA2, 0, 110, 1), 110)
     new_val = oom_get_keyvalue(port, 'SOFT_TX_DISABLE_SELECT')
     print('updated value of SOFT_TX_DISABLE_SELECT: %d' % (new_val))
-    print()
+    print("")
 
     # restore initial value
     retval2 = oom_set_keyvalue(port, 'SOFT_TX_DISABLE_SELECT', init_val)

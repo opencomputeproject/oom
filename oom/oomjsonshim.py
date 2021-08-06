@@ -34,7 +34,6 @@ def setparms(parms):
     preamble = 'http://'
     if temp[:7] != preamble:
         temp = preamble + temp
-    print('Using URL: %s' % temp)
     url.remote = temp
 
 
@@ -63,9 +62,15 @@ def oom_get_memory_sff(cport, address, page, offset, length, data):
                                         'offset': offset, 'length': length})
 
     py = json.loads(js.text)
+    pydata = py['data']
     retlen = int(py['length'])
-    retdata = base64.b64decode(py['data'])
+    # in Python 3, type conversions add b' to the front and ' to the back
+    # need to strip them off before decoding.  Bother!
+    if isinstance(pydata, str):
+        pydata = pydata[2:len(pydata)-1]
+    retdata = base64.b64decode(pydata)
     ptr = 0
+
     for c in retdata:
         data[ptr] = c
         ptr += 1
@@ -109,7 +114,10 @@ def jpdict_to_cport(jp_dict):
     name = jp_dict['name'].encode('utf-8')
     for i in range(0, 32):
         if i < len(name):
-            cport.name[i] = ord(name[i])
+            if isinstance(name, str):  # python 2.7 type
+                cport.name[i] = ord(name[i])
+            else:                    # python 3 type is int
+                cport.name[i] = name[i]
         else:
             cport.name[i] = 0
     cport.oom_class = int(jp_dict['oom_class'])
@@ -120,7 +128,7 @@ def cport_to_json(cport):
     fixedhandle = cport.handle  # python thinks '0' is 'None'
     if fixedhandle is None:     # for a c_void_p type object
         fixedhandle = 0         # so fix it :-(
-    port_name = bytearray(cport.name).rstrip('\0')
+    port_name = bytearray(cport.name).decode('utf-8').rstrip('\0')
     json_out = '{"handle": "%d", "oom_class": "%d", "name": "%s"}' % \
                (fixedhandle, cport.oom_class, port_name)
     return json_out

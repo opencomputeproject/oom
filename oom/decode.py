@@ -154,7 +154,6 @@ def get_signed_current(x):  # return in mA
 
 def get_string(x):  # copy the cbuffer into a string
     """ Decodes and returns string from the raw data"""
-    result = ''
     if isinstance(x, bytes):
         result = x.decode('utf-8')
     else:
@@ -565,11 +564,11 @@ def get_hexstr(x):
 def collapse_cfp(data):
     if len(data) < 2:
         return ''
-    newdata = create_string_buffer(len(data)/2)
+    newdata = create_string_buffer(int(len(data)/2))
     i = 0
     for c in data:
         if (i % 2) == 1:
-            newdata[i/2] = c
+            newdata[int(i/2)] = c
         i += 1
     return newdata
 
@@ -578,7 +577,7 @@ def collapse_cfp(data):
 # (except, expand_cfp(collapse_cfp(string)) will delete the last byte
 # if string is of odd length)
 def expand_cfp(data):
-    newdata = create_string_buffer(len(data)*2)
+    newdata = create_string_buffer(int(len(data)*2))
     i = 0
     for c in data:
         newdata[i*2] = '\0'
@@ -589,17 +588,15 @@ def expand_cfp(data):
 
 # Note that set_int returns a 'C string' suitable for oom_set_memory_sff
 def set_int(current, new):
-    try:
-        retlen = len(current)
-        retval = create_string_buffer(retlen)
-        temp = new
-        for i in range(retlen):
-            retval[(retlen - 1) - i] = chr(int(temp % 256)).encode('utf-8')
-            temp /= 256
-    except Exception as err:
-        print("Failed to set int. Error:"+str(err))
-        return
-
+    retlen = len(current)
+    retval = create_string_buffer(retlen)
+    temp = new
+    for i in range(retlen):
+        try:                   # python 2.7 flavor
+            retval[(retlen - 1) - i] = chr(temp % 256)
+        except:                # python 3 flavor
+            retval[(retlen - 1) - i] = temp % 256
+        temp = int(temp/256)
     return retval
 
 
@@ -608,36 +605,32 @@ def set_int(current, new):
 # of get_bits(x, offset, numbits)
 # high order is bit 7, low order is bit 0
 def set_bits(current, new, offset, numbits):
-    if (len(current) != 1) or (offset > 15) or (offset < 0) or \
-            (numbits > 16) or (numbits < 1) or \
-            ((offset - numbits) < -1) or (new > 0xFFFF):
+    if (len(current) != 1) or (offset > 7) or (offset < 0) or \
+            (numbits > 7) or (numbits < 1) or \
+            ((offset - numbits) < -1) or (new > 0xFF):
         print('set_bits bad parameters')
         return
-    try:
-        tempcurrent = ord(current[0])
+    tempcurrent = ord(current[0])
 
-        # Set the target bits in tempcurrent to all 1s
-        mask = 0xFF >> 8 - numbits
-        mask = mask << ((offset + 1) - numbits)
-        tempcurrent = tempcurrent | mask
+    # Set the target bits in tempcurrent to all 1s
+    mask = 0xFF >> 8 - numbits
+    mask = mask << ((offset + 1) - numbits)
+    tempcurrent = tempcurrent | mask
 
-        # align the new bits, and mask the non-target bits
-        tempnew = new << ((offset + 1) - numbits)
-        mask = ~mask & 0xFF
-        tempnew = tempnew | (mask)
+    # align the new bits, and mask the non-target bits
+    tempnew = new << ((offset + 1) - numbits)
+    mask = ~mask & 0xFF
+    tempnew = tempnew | (mask)
 
-        # mash them together
-        newval = tempnew & tempcurrent
+    # mash them together
+    newval = tempnew & tempcurrent
 
-        # package the result for oom_set_memory_sff
-        retval = create_string_buffer(1)
-        if newval < 128:
-            retval[0] = chr(newval).encode('utf-8')
-        else:
-            retval[0] = chr(newval).encode('ISO-8859-1')
-    except Exception as err:
-        print("Failed to set bits. Error:"+str(err))
-        return
+    # package the result for oom_set_memory_sff
+    retval = create_string_buffer(1)
+    try:                   # python 2.7 flavor
+        retval[0] = chr(newval % 256)
+    except:                # python 3 flavor
+        retval[0] = newval % 256
 
     return retval
 
