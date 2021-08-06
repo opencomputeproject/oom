@@ -64,14 +64,14 @@ print('*******************')
 # demo the key write API
 # SOFT_TX_DISABLE_SELECT is a user writable control bit to disable TX
 print('oom_set_memory(port, key, value) demo')
-print('Current value of TX_DISABLE: ' + \
-        str(oom_get_keyvalue(port, 'SOFT_TX_DISABLE_SELECT')))
+print('Current value of TX_DISABLE: ' +
+      str(oom_get_keyvalue(port, 'SOFT_TX_DISABLE_SELECT')))
 status = oom_set_keyvalue(port, 'SOFT_TX_DISABLE_SELECT', 1)
-print('New value of TX_DISABLE: ' + \
-        str(oom_get_keyvalue(port, 'SOFT_TX_DISABLE_SELECT')))
+print('New value of TX_DISABLE: ' +
+      str(oom_get_keyvalue(port, 'SOFT_TX_DISABLE_SELECT')))
 status = oom_set_keyvalue(port, 'SOFT_TX_DISABLE_SELECT', 0)
-print('Newer value of TX_DISABLE: ' + \
-        str(oom_get_keyvalue(port, 'SOFT_TX_DISABLE_SELECT')))
+print('Newer value of TX_DISABLE: ' +
+      str(oom_get_keyvalue(port, 'SOFT_TX_DISABLE_SELECT')))
 print('*******************')
 
 # demo QSFP+
@@ -86,20 +86,20 @@ print("SERIAL_ID: " + str(oom_get_memory(port, "SERIAL_ID")))
 # demo QSFP key write
 # TXn_DISABLE disables Tx on channel n
 print('QSFP oom_set_memory(port, key, value) demo')
-print('Current value of TX_DISABLE (one bit per ch, ch4 is high bit): ' + \
-        hex(oom_get_keyvalue(port, 'TX_DISABLE')))
+print('Current value of TX_DISABLE (one bit per ch, ch4 is high bit): ' +
+      hex(oom_get_keyvalue(port, 'TX_DISABLE')))
 status = oom_set_keyvalue(port, 'TX4_DISABLE', 1)
 status = oom_set_keyvalue(port, 'TX2_DISABLE', 1)
-print('New value of TX_DISABLE, disabled ch4, ch2: ' + \
-        hex(oom_get_keyvalue(port, 'TX_DISABLE')))
+print('New value of TX_DISABLE, disabled ch4, ch2: ' +
+      hex(oom_get_keyvalue(port, 'TX_DISABLE')))
 status = oom_set_keyvalue(port, 'TX4_DISABLE', 0)
 status = oom_set_keyvalue(port, 'TX3_DISABLE', 1)
 status = oom_set_keyvalue(port, 'TX2_DISABLE', 0)
 status = oom_set_keyvalue(port, 'TX1_DISABLE', 1)
-print('Newer value of TX_DISABLE, swapped all 4 channels: ' + \
-        hex(oom_get_keyvalue(port, 'TX_DISABLE')))
+print('Newer value of TX_DISABLE, swapped all 4 channels: ' +
+      hex(oom_get_keyvalue(port, 'TX_DISABLE')))
 status = oom_set_keyvalue(port, 'TX3_DISABLE', 0)
 status = oom_set_keyvalue(port, 'TX1_DISABLE', 0)
-print('Re-enable all 4 ports: ' + \
-        hex(oom_get_keyvalue(port, 'TX_DISABLE')))
+print('Re-enable all 4 ports: ' +
+      hex(oom_get_keyvalue(port, 'TX_DISABLE')))
 print('*******************')

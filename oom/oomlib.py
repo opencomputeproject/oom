@@ -114,7 +114,7 @@ packagedir = os.path.normpath(os.path.dirname(os.path.realpath(__file__)))
 
 try:
     # first choice for a shim (for legacy reasons) is a compiled C library
-    oomsth.shim = cdll.LoadLibrary(\
+    oomsth.shim = cdll.LoadLibrary(
                     os.path.join(packagedir, 'lib', 'oom_south.so'))
 except:
     # look for an installed shim (default for this system),

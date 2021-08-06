@@ -92,7 +92,7 @@ if port.port_type == 13:
     print_block_hex(oom_get_memory_sff(port, 0xA0, 2, 128, 128), 128)
     init_val0 = oom_get_keyvalue(port, 'Q_WRITE_0')
     init_val127 = oom_get_keyvalue(port, 'Q_WRITE_127')
-    print('initial value of byte 0: %x, byte 127: %x' % \
+    print('initial value of byte 0: %x, byte 127: %x' %
           (init_val0, init_val127))
 
     retval0 = oom_set_keyvalue(port, 'Q_WRITE_0', 0xAA)
@@ -113,4 +113,5 @@ if port.port_type == 13:
     print_block_hex(oom_get_memory_sff(port, 0xA0, 2, 128, 128), 128)
     res_val0 = oom_get_keyvalue(port, 'Q_WRITE_0')
     res_val127 = oom_get_keyvalue(port, 'Q_WRITE_127')
-    print('restored value of byte 0: %x, byte 127: %x' % (res_val0, res_val127))
+    print('restored value of byte 0: %x, byte 127: %x' %
+          (res_val0, res_val127))

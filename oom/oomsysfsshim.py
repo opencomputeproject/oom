@@ -20,6 +20,7 @@ from threading import Lock
 
 mutex = Lock()
 
+
 #
 # where to find eeprom data:  '<root>/<device_name>/<eeprom>'
 #
@@ -31,20 +32,22 @@ class paths_class:
         # Note that special code below is part of the discovery and
         # recognition process for each style of device naming
         self.locs = {
-            'OPTOE':  ('/sys/bus/i2c/devices/',\
-                       '/port_name',\
+            'OPTOE':  ('/sys/bus/i2c/devices/',
+                       '/port_name',
                        '/eeprom'),
-            'ACCTON': ('/sys/bus/i2c/devices/',\
-                       '/sfp_port_number',\
+            'ACCTON': ('/sys/bus/i2c/devices/',
+                       '/sfp_port_number',
                        '/sfp_eeprom'),
-            # Accton as5916_54xks platform port name can be found from eeprom filename
+            # Accton as5916_54xks platform port name can be found
+            # from eeprom filename
             'ACCTON_AS5916_54XKS': ('/sys/devices/platform/as5916_54xks_sfp/',\
-                       '',\
-                       ''),
-            # Accton as7316_26xb platform port name can be found from eeprom filename
+                                    '',\
+                                    ''),
+            # Accton as7316_26xb platform port name can be found
+            # from eeprom filename
             'ACCTON_AS7316_26XB': ('/sys/devices/platform/as7316_26xb_sfp/',\
-                       '',\
-                       ''),
+                                   '',\
+                                   ''),
             'EEPROM': ('/sys/class/eeprom_dev/',\
                        '/label',\
                        '/device/eeprom'),
@@ -92,7 +95,8 @@ class ports:
                 eeprompath = dirpath + name + eepromname
                 if not os.path.exists(eeprompath):
                     continue
-                if key != 'ACCTON_AS5916_54XKS' and key != 'ACCTON_AS7316_26XB':
+                if key != 'ACCTON_AS5916_54XKS' and \
+                   key != 'ACCTON_AS7316_26XB':
                     namepath = dirpath + name + portpath
                     try:
                         with open(namepath, 'r') as fd:
@@ -141,10 +145,12 @@ class ports:
                 elif key == 'MDIO':
                     portname = portlabel
 
-                elif key == 'ACCTON_AS5916_54XKS' or key == 'ACCTON_AS7316_26XB':
+                elif key == 'ACCTON_AS5916_54XKS' or \
+                     key == 'ACCTON_AS7316_26XB':
                     m = re.match(r"module_eeprom_(\d+)", name)
                     if not m:
-                        # Couldn't able to locate the device files in any of the specified paths
+                        # Couldn't locate the device files in any
+                        # of the specified paths
                         continue
                     portlabel = m.group(1)+"\n"
                     # Get the port number for this eeprom

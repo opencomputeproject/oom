@@ -249,8 +249,8 @@ def get_bits(x, offset, numbits):
     if (len(x) > 2) or (offset > 15) or (offset < 0) or \
             (numbits > 16) or (numbits < 1) or \
             ((offset - numbits) < -1):
-        print('get_bits bad parameters - len(x): %d, offset: %d, numbits: %d'\
-                % (len(x), offset, numbits))
+        print('get_bits bad parameters - len(x): %d, offset: %d, numbits: %d'
+              % (len(x), offset, numbits))
         return
     if isinstance(x[0], (bytes, str)):
         temp = ord(x[0])
@@ -634,6 +634,7 @@ def set_bits(current, new, offset, numbits):
 
     return retval
 
+
 # turn a temperature (floating point python) into a 2 byte module
 # temperature.  [Reverses the calculations of get_temperature()]
 def set_temperature(current, new):
@@ -648,7 +649,7 @@ def set_temperature(current, new):
         retval[0] = chr(int(temp / 256))
         retval[1] = chr(int(temp % 256))
     except Exception as err:
-        print("Failed to set temperature. Error:"+str(err))
+        print("Failed to set temperature. Error: "+str(err))
         return
 
     return retval

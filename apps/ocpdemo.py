@@ -15,7 +15,7 @@
 
 from oom import *                   # the published OOM Northbound API
 from oom.oomlib import type_to_str
-from oom.decode import get_hexstr           # helper function from the decode pack
+from oom.decode import get_hexstr   # helper function from the decode pack
 from time import sleep
 import sys
 
@@ -67,7 +67,7 @@ try:
                         outstr += key + ': ' \
                                 + str(oom_get_keyvalue(port, key)) + "; "
                 else:
-                     outstr += '                   '
+                    outstr += '                   '
             print(outstr[0:linelen])
             lines += 1
         pcycle += 1  # it will take a LONG time to roll over

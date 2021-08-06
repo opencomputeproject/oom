@@ -12,7 +12,7 @@
 # ////////////////////////////////////////////////////////////////////
 
 from oom import *                   # the published OOM Northbound API
-from oom.decode import get_hexstr           # helper function from the decode pack
+from oom.decode import get_hexstr   # helper function from the decode pack
 from oom.oomlib import print_block_hex
 
 

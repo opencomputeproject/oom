@@ -43,12 +43,12 @@ def iop(port, fileflag):
     # identify the module
     print("")
     print('Port: %s' % port.port_name)
-    print('%s %s module' % \
-        (oom_get_keyvalue(port, 'VENDOR_NAME'),
-         mod_id(port.port_type)))
-    print('Part Number: %s  Serial Number: %s' % \
-        (oom_get_keyvalue(port, 'VENDOR_PN'),
-         oom_get_keyvalue(port, 'VENDOR_SN')))
+    print('%s %s module' %
+          (oom_get_keyvalue(port, 'VENDOR_NAME'),
+           mod_id(port.port_type)))
+    print('Part Number: %s  Serial Number: %s' %
+          (oom_get_keyvalue(port, 'VENDOR_PN'),
+           oom_get_keyvalue(port, 'VENDOR_SN')))
     print(outfilename)
 
     # print out the Serial ID keys
@@ -68,9 +68,11 @@ def iop(port, fileflag):
     print("")
     vend_specific = ''
     if port.port_type == 0x3 or (port.port_type == 0xB):   # SFP
-        vend_specific = get_hexstr(oom_get_keyvalue(port, 'VENDOR_SPECIFIC_96'))
+        vend_specific = \
+            get_hexstr(oom_get_keyvalue(port, 'VENDOR_SPECIFIC_96'))
     if (port.port_type == 0xD) or (port.port_type == 0x11):  # QSFP+/QSFP28
-        vend_specific = get_hexstr(oom_get_keyvalue(port, 'VENDOR_SPECIFIC_224'))
+        vend_specific = \
+            get_hexstr(oom_get_keyvalue(port, 'VENDOR_SPECIFIC_224'))
     print('Vendor Specific: ' + vend_specific)
 
     # dump the raw data from the two most popular blocks, by type
