@@ -14,10 +14,16 @@
 from oom import *                   # the published OOM Northbound API
 from oom.decode import get_hexstr   # helper function from the decode pack
 from oom.oomlib import print_block_hex
+import sys
 
+# open port
+try:
+    port = oom_get_port(int(sys.argv[1]))
+except Exception:
+    print("Usage: python3 keytest.py <port-index>")
+    print("       <port-index> starts from 0")
+    sys.exit(0)
 
-# open port 5
-port = oom_get_port(5)
 print('0xA0, page 0, offset 0, 128 bytes')
 print_block_hex(oom_get_memory_sff(port, 0xA0, 0, 0, 128), 0)
 print("")

@@ -13,9 +13,15 @@
 
 from oom import *                   # the published OOM Northbound API
 from oom.decode import get_hexstr   # helper function from the decode pack
+import sys
 
-# open port 0
-port = oom_get_port(0)
+# open port
+try:
+    port = oom_get_port(int(sys.argv[1]))
+except Exception:
+    print("Usage: python3 keytest.py <port-index>")
+    print("       <port-index> starts from 0")
+    sys.exit(0)
 
 # get the internal list of keys and decoders for this type of module
 # report their values for this port
