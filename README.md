@@ -9,6 +9,24 @@ port of a switch.  In addition to key/value read access, the OOM
 project also supports key/value write to a limited number of EEPROM
 locations, and raw read/write access directly to EEPROM.
 
+NEWS: August 12, 2021
+Two different big updates...
+
+OOM, the python package, has been updated to support Python 3.  It also
+supports Python 2.7, with the same code and interface.  (Install it
+via setup.py, separately for each version of python.)  It should be
+backward compatible except that the 'hexstr' function has been renamed
+'get_hexstr'.
+
+optoe, the linux driver, was significantly updated to build/run in the
+5.11 upstream linux kernel.  It was submitted there, and rejected for
+architectural, not technical reasons.  That code has been checked in here.
+This update includes device tree support, nvmem support and regmap support.
+This it can be configured via device tree files, and it can be accessed from
+within the kernel.  It is also completely backward compatible with the
+previous version of optoe.  Check oom/optoe/optoe.rst for documentation on
+the original and new capabilities.
+
 NEWS:  August 1, 2019
 The optoe driver has been updated to support CMIS type devices.  These
 include QSFP-DD, OSFP, COBO and SFP-DD at least.  They conform to the
