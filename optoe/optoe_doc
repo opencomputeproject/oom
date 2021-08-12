@@ -2,75 +2,22 @@ optoe driver
 
 Author Don Bollinger (don@thebollingers.org)
 
-Optoe is an i2c based driver that supports read/write access to all
-the pages (tables) of MSA standard SFP and similar devices (conforming
-to the SFF-8472 spec), MSA standard QSFP and similar devices
-(conforming to the SFF_8436 spec) and MSA standard QSFP-DD and similar
-devices (conforming to the Common Management Interface Specification
-or CMIS).
+This file describes the content of the optoe directory on the OOM github repo.
+These files were prepared and submitted for inclusion in the upstream
+linux kernel version 5.11.  They were not accepted for architectural
+reasons.  The code correctly implements the functions it claims, but the
+linux kernel network maintainers do not want user space access to network
+devices, including SFP/QSFP/CMIS devices.
 
-This driver is derived from the sff_8436 driver written by Cumulus
-Networks (thanks and kudos), which was derived from the at24 driver
-in the Linux kernel.
+optoe.c is the driver proper.  It logically belongs in drivers/misc/eeprom
 
-i2c based optoelectronic transceivers (SPF, QSFP, etc) provide identification,
-operational status, and control registers via an EEPROM model.  Unlike the
-EEPROMs that at24 supports, these devices access data beyond byte 256 via
-a page select register, which must be managed by the driver.  See the driver
-code for a detailed explanation of how the linear address space provided
-by the driver maps to the paged address space provided by the devices.
+optoe.txt describes the device tree bindings.  It belongs in
+Documentation/misc-devices/optoe.txt
 
-The EEPROM data is accessible via a bin_attribute file called 'eeprom',
-e.g. /sys/bus/i2c/devices/24-0050/eeprom
+optoe.rst describes the optoe driver in general.  It belongs in
+Documentation/misc-devices/optoe.rst
 
-This driver also reports the port number for each device, via a sysfs
-attribute: 'port_name'.  This is a read/write attribute.  It should be
-explicitly set as part of system initialization, ideally at the same time
-the device is instantiated.  Write an appropriate port name (any string, up
-to 19 characters) to initialize.  If not initialized explicitly, all ports
-will have the port_name of 'unitialized'.  Alternatively, if the driver is
-called with platform_data, the port_name will be read from eeprom_data->label
-(if the EEPROM CLASS driver is configured) or from platform_data.port_name.
+Kconfig and Makefile add optoe support, updating the files with the same
+name in drivers/misc/eeprom
 
-This driver can be instantiated with 'new_device', per the convention
-described in Documentation/i2c/instantiating-devices.  It wants one of
-three possible device identifiers.
-
-Use 'optoe1' to indicate this is a device with just one i2c address which
-conforms to the sff-8436 spec (QSFP type devices, but not CMIS deviecs
-such as QSFP-DD, OSFP, COBO, SFP-DD).
-
-Use 'optoe2' to indicate this is a device with two i2c addresses (all
-SFP type devices).
-
-Use 'optoe3' to indicate this is a CMIS device.  CMIS devices conform to
-the CMIS standard and include QSFP-DD, OSFP, COBO and SFP-DD devices.
-
-Example:
-# echo optoe1 0x50 > /sys/bus/i2c/devices/i2c-64/new_device
-# echo port54 > /sys/bus/i2c/devices/i2c-64/port_name
-
-This will add a QSFP type device to i2c bus i2c-64, and name it 'port54'
-
-Example:
-# echo optoe2 0x50 > /sys/bus/i2c/devices/i2c-11/new_device
-# echo port1 > /sys/bus/i2c/devices/i2c-11/port_name
-
-This will add an SFP type device to i2c bus i2c-11, and name it 'port1'
-
-Example:
-# echo optoe3 0x50 > /sys/bus/i2c/devices/i2c-22/new_device
-# echo port12 > /sys/bus/i2c/devices/i2c-22/port_name
-
-This will add a CMIS type device to i2c bus i2c-22, and name it 'port12'
-
-The second parameter to new_device is an i2c address, and MUST be 0x50 for
-this driver to work properly.  This is part of the spec for these devices.
-(It is not necessary to create a device at 0x51 for SFP type devices, the
-driver does that automatically.)
-
-Note that SFP, QSFP and CMIS type devices are not plug-compatible.  The
-driver expects the correct ID for each port (each i2c device).  It does
-not check because the port will often be empty, and the only way to check
-is to interrogate the device.  Incorrect choice of ID will lead to correct
-data being reported for the first 256 bytes, incorrect data after that.
+I recommend reading optoe.rst first, then explore from there.
