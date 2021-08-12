@@ -899,7 +899,7 @@ static int optoe_probe(struct i2c_client *client,
 		optoe->byte_len = ONE_ADDR_EEPROM_SIZE;
 	} else {     /* those were the only choices */
 		err = -EINVAL;
-		goto exit;
+		goto err_struct;
 	}
 
 	/*
@@ -917,7 +917,7 @@ static int optoe_probe(struct i2c_client *client,
 	regmap = optoe_make_regmap(client);
 	if (IS_ERR(regmap)) {
 		err = PTR_ERR(regmap);
-		goto exit;
+		goto err_struct;
 	}
 
 	optoe->optoe_client.client = client;
